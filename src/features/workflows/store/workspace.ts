@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { createDemoWorkspace, createStartNode, templateFlows } from "@/server/seed/demo-workspace";
 import { createId } from "@/shared/lib/id";
-import { createDemoWorkspace, createStartNode, templates } from "@/server/seed/demo-workspace";
+
 import type {
   Activity,
   Execution,
@@ -80,10 +81,8 @@ export const useWorkspace = create<WorkspaceState>()(
       createWorkflow: ({ name, description, templateId }) => {
         const now = new Date().toISOString();
         const id = createId("akis");
-        const template = templates.find((item) => item.id === templateId);
-        const flow = template
-          ? template.build()
-          : { nodes: [createStartNode()], edges: [] };
+        const build = templateId ? templateFlows[templateId] : undefined;
+        const flow = build ? build() : { nodes: [createStartNode()], edges: [] };
         set((state) => ({
           workflows: [
             {

@@ -9,6 +9,8 @@ import type {
   Workflow,
 } from "@/shared/domain/types";
 
+type Flow = { nodes: StoredNode[]; edges: StoredEdge[] };
+
 const ago = (minutes: number) =>
   new Date(Date.now() - minutes * 60000).toISOString();
 
@@ -86,27 +88,17 @@ function syncFlow() {
   return { nodes: [start, http], edges: [edge(start, http)] };
 }
 
-export const templates = [
-  {
-    id: "siparis",
-    name: "Sipariş bildirimi",
-    description: "Webhook ile gelen siparişi koşula göre işler.",
-    build: () => orderFlow("{{data.amount}}"),
-  },
-  {
-    id: "rapor",
-    name: "Günlük rapor",
-    description: "Veriyi her sabah okuyup e-postayla gönderir.",
-    build: reportFlow,
-  },
-];
+export const templateFlows: Record<string, () => Flow> = {
+  siparis: () => orderFlow("{{data.amount}}"),
+  rapor: reportFlow,
+};
 
 function workflow(
   name: string,
   description: string,
   status: Workflow["status"],
   tags: string[],
-  flow: { nodes: StoredNode[]; edges: StoredEdge[] },
+  flow: Flow,
   edited: number,
   lastRun?: number,
 ): Workflow {
