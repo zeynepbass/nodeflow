@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { buttonClass } from "@/components/atoms/Button";
 import { EmptyState } from "@/components/molecules/EmptyState";
-import { Modal } from "@/components/molecules/Modal";
 import { AuthGate } from "@/components/organisms/AppShell";
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { useEditor } from "@/lib/stores/editor";
@@ -17,6 +16,8 @@ import { EditorToolbar } from "./EditorToolbar";
 import { NodeLibrary } from "./NodeLibrary";
 import { NodePicker } from "./NodePicker";
 import { RightPanel } from "./RightPanel";
+import { ScheduleModal } from "./ScheduleModal";
+import { useRunner } from "./useRunner";
 
 function useAutosave() {
   const revision = useEditor((state) => state.revision);
@@ -90,6 +91,7 @@ function DesktopEditor() {
   const save = useAutosave();
   useEditorShortcuts(save);
   const isTablet = useMediaQuery("(max-width: 1023px)");
+  const run = useRunner();
   const selectedNodeId = useEditor((state) => state.selectedNodeId);
   const [libraryCollapsed, setLibraryCollapsed] = useState(false);
   const [libraryOverlay, setLibraryOverlay] = useState(false);
@@ -108,8 +110,8 @@ function DesktopEditor() {
   return (
     <div className="flex h-dvh flex-col">
       <EditorToolbar
-        onRun={() => undefined}
-        onTestRun={() => undefined}
+        onRun={() => run("Manuel")}
+        onTestRun={() => run("Test")}
         onSchedule={() => setScheduleOpen(true)}
         onToggleLibrary={() => setLibraryOverlay((value) => !value)}
         onRetrySave={save}
@@ -145,13 +147,7 @@ function DesktopEditor() {
         />
       </div>
       <NodePicker />
-      <Modal
-        open={scheduleOpen}
-        onClose={() => setScheduleOpen(false)}
-        title="Zamanla"
-      >
-        <p className="text-fg-muted">Zamanlama seçenekleri burada yer alır.</p>
-      </Modal>
+      <ScheduleModal open={scheduleOpen} onClose={() => setScheduleOpen(false)} />
     </div>
   );
 }
