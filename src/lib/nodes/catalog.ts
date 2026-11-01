@@ -20,7 +20,7 @@ export interface CategoryMeta {
 
 export const categories: Record<NodeCategory, CategoryMeta> = {
   start: { label: "Başlangıç", icon: CirclePlay, color: "var(--node-start)", hasInput: false, outputs: 1 },
-  trigger: { label: "Tetikleyici", icon: Zap, color: "var(--node-trigger)", hasInput: false, outputs: 1 },
+  trigger: { label: "Tetikleyici", icon: Zap, color: "var(--node-trigger)", hasInput: true, outputs: 1 },
   action: { label: "İşlem", icon: Cpu, color: "var(--node-action)", hasInput: true, outputs: 1 },
   condition: { label: "Koşul", icon: Split, color: "var(--node-condition)", hasInput: true, outputs: 2 },
   data: { label: "Veri", icon: Database, color: "var(--node-data)", hasInput: true, outputs: 1 },

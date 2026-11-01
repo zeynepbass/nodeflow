@@ -35,34 +35,30 @@ export function createStartNode() {
 }
 
 function orderFlow(amountField: string) {
-  const start = node("start", 40, 220);
-  const webhook = node("trigger-webhook", 320, 220, {
+  const start = node("start", 0, 160);
+  const webhook = node("trigger-webhook", 270, 160, {
     label: "Sipariş Webhook",
     params: { triggerType: "webhook", path: "/siparis-olustu", cron: "" },
   });
-  const transform = node("action-transform", 600, 220);
-  const check = node("condition-if", 880, 220, {
+  const check = node("condition-if", 540, 160, {
     label: "Tutar > 100",
     params: {
       join: "and",
       rules: [{ id: "kural-1", field: amountField, operator: "greater", value: "100" }],
     },
   });
-  const save = node("data-write", 1180, 80, { label: "Siparişi Kaydet" });
-  const mail = node("action-email", 1460, 80, {
+  const mail = node("action-email", 840, 40, {
     label: "Onay E-postası",
     params: { to: "{{trigger.email}}", subject: "Siparişin alındı", body: "" },
   });
-  const finish = node("end-finish", 1740, 80);
-  const skip = node("end-finish", 1180, 360, { label: "Küçük Sipariş" });
+  const finish = node("end-finish", 1110, 40);
+  const skip = node("end-finish", 840, 280, { label: "Küçük Sipariş" });
   return {
-    nodes: [start, webhook, transform, check, save, mail, finish, skip],
+    nodes: [start, webhook, check, mail, finish, skip],
     edges: [
       edge(start, webhook),
-      edge(webhook, transform),
-      edge(transform, check),
-      edge(check, save, "yes"),
-      edge(save, mail),
+      edge(webhook, check),
+      edge(check, mail, "yes"),
       edge(mail, finish),
       edge(check, skip, "no"),
     ],
@@ -135,7 +131,10 @@ function execution(
   trigger: string,
 ): Execution {
   const startedAt = ago(minutesAgo);
-  const failAt = status === "error" ? Math.min(3, item.nodes.length - 1) : -1;
+  const failAt =
+    status === "error"
+      ? item.nodes.findIndex((current) => current.data.category === "condition")
+      : -1;
   const ran = status === "error" ? item.nodes.slice(0, failAt + 1) : item.nodes;
   const error = "değerlendirilemedi — eksik alan: amount";
   return {
