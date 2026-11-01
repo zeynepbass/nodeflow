@@ -13,6 +13,7 @@ import { showToast } from "@/lib/stores/toast";
 import { useWorkspace } from "@/lib/stores/workspace";
 import { Canvas } from "./Canvas";
 import { EditorToolbar } from "./EditorToolbar";
+import { MobileEditor } from "./MobileEditor";
 import { NodeLibrary } from "./NodeLibrary";
 import { NodePicker } from "./NodePicker";
 import { RightPanel } from "./RightPanel";
@@ -87,8 +88,7 @@ function useEditorShortcuts(save: () => void) {
   }, [flow, save]);
 }
 
-function DesktopEditor() {
-  const save = useAutosave();
+function DesktopEditor({ save }: { save: () => void }) {
   useEditorShortcuts(save);
   const isTablet = useMediaQuery("(max-width: 1023px)");
   const run = useRunner();
@@ -152,6 +152,17 @@ function DesktopEditor() {
   );
 }
 
+function EditorBody() {
+  const save = useAutosave();
+  const isMobile = useMediaQuery("(max-width: 767px)");
+  if (isMobile) return <MobileEditor onRetrySave={save} />;
+  return (
+    <ReactFlowProvider>
+      <DesktopEditor save={save} />
+    </ReactFlowProvider>
+  );
+}
+
 function EditorContent({ id }: { id: string }) {
   const workflow = useWorkspace((state) =>
     state.workflows.find((item) => item.id === id),
@@ -183,11 +194,7 @@ function EditorContent({ id }: { id: string }) {
   }
   if (loadedId !== id) return null;
 
-  return (
-    <ReactFlowProvider>
-      <DesktopEditor />
-    </ReactFlowProvider>
-  );
+  return <EditorBody />;
 }
 
 export function EditorScreen({ id }: { id: string }) {
