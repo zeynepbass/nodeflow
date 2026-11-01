@@ -14,7 +14,7 @@ import { hasErrors } from "@/shared/domain/nodes/validation";
 import { useEditor, type FlowEdge, type FlowNode } from "@/features/editor/store/editor";
 import { useWorkflow } from "@/features/workflows/hooks/useWorkflows";
 import { CategoryIcon } from "@/features/editor/components/CategoryIcon";
-import { EditableName } from "@/features/editor/components/EditorToolbar";
+import { EditableName } from "./EditableName";
 import { NodePicker } from "@/features/editor/components/NodePicker";
 import { NodeSettingsPanel } from "@/features/editor/components/NodeSettingsPanel";
 import { nodeSummary } from "@/features/editor/lib/summary";
@@ -190,7 +190,11 @@ function Chain({ item, lastRunAt }: { item: OutlineItem; lastRunAt?: string }) {
   );
 }
 
-export function MobileEditor({ onRetrySave }: { onRetrySave: () => Promise<void> }) {
+export default function MobileEditor({
+  onRetrySave,
+}: {
+  onRetrySave: () => Promise<void>;
+}) {
   const run = useRunner(onRetrySave);
   const workflowId = useEditor((state) => state.workflowId);
   const { data: workflow } = useWorkflow(workflowId);

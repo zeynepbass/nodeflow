@@ -19,7 +19,7 @@ import { Modal } from "@/shared/ui/molecules/Modal";
 import { Segmented } from "@/shared/ui/molecules/Segmented";
 import { useCreateWorkflow } from "../hooks/useWorkflows";
 
-export function NewWorkflowModal() {
+export default function NewWorkflowModal() {
   const router = useRouter();
   const open = useUi((state) => state.newWorkflowOpen);
   const setOpen = useUi((state) => state.setNewWorkflowOpen);

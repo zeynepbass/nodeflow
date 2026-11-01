@@ -19,7 +19,7 @@ interface Command {
 
 const normalize = (value: string) => value.toLocaleLowerCase("tr-TR");
 
-export function CommandPalette() {
+export default function CommandPalette() {
   const router = useRouter();
   const open = useUi((state) => state.paletteOpen);
   const setOpen = useUi((state) => state.setPaletteOpen);
@@ -29,17 +29,6 @@ export function CommandPalette() {
   const dialog = useRef<HTMLDialogElement>(null);
   const [query, setQuery] = useState("");
   const [cursor, setCursor] = useState(0);
-
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault();
-        setOpen(!useUi.getState().paletteOpen);
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [setOpen]);
 
   useEffect(() => {
     if (open && !dialog.current?.open) dialog.current?.showModal();

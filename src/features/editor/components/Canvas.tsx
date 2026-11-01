@@ -1,12 +1,16 @@
 "use client";
 
 import {
+  applyEdgeChanges,
+  applyNodeChanges,
   Background,
   BackgroundVariant,
   MiniMap,
   Panel,
   ReactFlow,
   useReactFlow,
+  type EdgeChange,
+  type NodeChange,
   type NodeMouseHandler,
 } from "@xyflow/react";
 import { Map as MapIcon, X } from "lucide-react";
@@ -31,8 +35,8 @@ export function Canvas() {
   const coarse = useMediaQuery("(pointer: coarse)");
   const nodes = useEditor((state) => state.nodes);
   const edges = useEditor((state) => state.edges);
-  const onNodesChange = useEditor((state) => state.onNodesChange);
-  const onEdgesChange = useEditor((state) => state.onEdgesChange);
+  const setNodes = useEditor((state) => state.setNodes);
+  const setEdges = useEditor((state) => state.setEdges);
   const connect = useEditor((state) => state.connect);
   const canConnect = useEditor((state) => state.canConnect);
   const snapshot = useEditor((state) => state.snapshot);
@@ -42,6 +46,18 @@ export function Canvas() {
   const addNode = useEditor((state) => state.addNode);
   const [dropBox, setDropBox] = useState<{ x: number; y: number } | null>(null);
   const [minimapOpen, setMinimapOpen] = useState(true);
+
+  const onNodesChange = useCallback(
+    (changes: NodeChange<FlowNode>[]) =>
+      setNodes(applyNodeChanges(changes, useEditor.getState().nodes)),
+    [setNodes],
+  );
+
+  const onEdgesChange = useCallback(
+    (changes: EdgeChange<FlowEdge>[]) =>
+      setEdges(applyEdgeChanges(changes, useEditor.getState().edges)),
+    [setEdges],
+  );
 
   const onDragOver = (event: DragEvent) => {
     if (!event.dataTransfer.types.includes(DRAG_TYPE)) return;
@@ -111,6 +127,7 @@ export function Canvas() {
         }
         minZoom={0.25}
         maxZoom={2}
+        onlyRenderVisibleElements
         fitView
         fitViewOptions={{ padding: 0.12, minZoom: 0.5, maxZoom: 1 }}
         deleteKeyCode={["Delete", "Backspace"]}
