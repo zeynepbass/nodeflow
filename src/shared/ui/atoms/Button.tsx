@@ -11,7 +11,7 @@ const variants: Record<ButtonVariant, string> = {
     "bg-surface text-fg border border-line hover:bg-surface-hover active:bg-line",
   ghost:
     "bg-transparent text-fg-muted hover:bg-surface-hover hover:text-fg active:bg-line",
-  destructive: "bg-error-500 text-white hover:bg-error-700 active:bg-error-700",
+  destructive: "bg-error-700 text-white hover:brightness-90 active:brightness-75",
 };
 
 const sizes: Record<ButtonSize, string> = {

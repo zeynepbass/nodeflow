@@ -82,7 +82,7 @@
 
   --state-success: var(--success-500);
   --state-warning: var(--warning-500);
-  --state-error: var(--error-500);
+  --state-error: var(--error-700);
 
   --node-start: var(--neutral-700);
   --node-trigger: var(--secondary-500);
