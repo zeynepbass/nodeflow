@@ -1,7 +1,7 @@
 import { SearchX } from "lucide-react";
 import Link from "next/link";
-import { buttonClass } from "@/components/atoms/Button";
-import { EmptyState } from "@/components/molecules/EmptyState";
+import { buttonClass } from "@/shared/ui/atoms/Button";
+import { EmptyState } from "@/shared/ui/molecules/EmptyState";
 
 export default function NotFound() {
   return (

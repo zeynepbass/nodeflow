@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { EditorScreen } from "@/components/editor/EditorScreen";
+import { EditorScreen } from "@/features/editor/components/EditorScreen";
 
 export const metadata: Metadata = { title: "Node Editör" };
 

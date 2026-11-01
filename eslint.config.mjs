@@ -10,6 +10,22 @@ const eslintConfig = defineConfig([
       "no-console": "error",
     },
   },
+  {
+    files: ["src/shared/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/features/*", "@/widgets/*", "@/server/*", "@/app/*"],
+              message: "shared katmanı üst katmanlara bağımlı olamaz.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
 ]);
 
