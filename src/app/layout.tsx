@@ -14,7 +14,7 @@ const inter = Inter({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin", "latin-ext"],
-  display: "swap",
+  display: "optional",
   preload: false,
 });
 
