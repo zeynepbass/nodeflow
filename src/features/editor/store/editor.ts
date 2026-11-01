@@ -1,12 +1,4 @@
-import {
-  applyEdgeChanges,
-  applyNodeChanges,
-  type Connection,
-  type Edge,
-  type EdgeChange,
-  type Node,
-  type NodeChange,
-} from "@xyflow/react";
+import type { Connection, Edge, Node } from "@xyflow/react";
 import { create } from "zustand";
 import { createId } from "@/shared/lib/id";
 import { categories, createStoredNode } from "@/shared/domain/nodes/catalog";
@@ -46,8 +38,8 @@ interface EditorState {
   pickerTarget: PickerTarget | null;
 
   load: (workflow: Workflow) => void;
-  onNodesChange: (changes: NodeChange<FlowNode>[]) => void;
-  onEdgesChange: (changes: EdgeChange<FlowEdge>[]) => void;
+  setNodes: (nodes: FlowNode[]) => void;
+  setEdges: (edges: FlowEdge[]) => void;
   connect: (connection: Connection) => void;
   canConnect: (connection: Connection | FlowEdge) => boolean;
   snapshot: () => void;
@@ -180,11 +172,9 @@ export const useEditor = create<EditorState>((set, get) => ({
       pickerTarget: null,
     }),
 
-  onNodesChange: (changes) =>
-    set((state) => ({ nodes: applyNodeChanges(changes, state.nodes) })),
+  setNodes: (nodes) => set({ nodes }),
 
-  onEdgesChange: (changes) =>
-    set((state) => ({ edges: applyEdgeChanges(changes, state.edges) })),
+  setEdges: (edges) => set({ edges }),
 
   canConnect: (connection) => {
     const { nodes, edges } = get();

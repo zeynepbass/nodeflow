@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "@xyflow/react/dist/style.css";
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
@@ -361,107 +360,6 @@
   }
   to {
     background-position: -200% 0;
-  }
-}
-
-.react-flow {
-  --xy-background-color: transparent;
-  --xy-selection-background-color: rgb(109 94 245 / 0.08);
-  --xy-selection-border: 1px solid var(--primary-500);
-  --xy-attribution-background-color: transparent;
-}
-
-.react-flow__attribution a {
-  color: var(--text-secondary);
-}
-
-.react-flow__node:has([role="menu"]) {
-  z-index: 2000 !important;
-}
-
-.react-flow__handle {
-  width: 10px;
-  height: 10px;
-  border: 2px solid var(--bg-surface);
-  background: var(--kategori);
-  transition:
-    width 100ms ease-out,
-    height 100ms ease-out;
-}
-
-.react-flow__handle:hover {
-  width: 14px;
-  height: 14px;
-}
-
-.react-flow__handle.connectingto:not(.valid) {
-  cursor: no-drop;
-}
-
-.react-flow__pane.draggable {
-  cursor: default;
-}
-
-.react-flow__pane.dragging {
-  cursor: grabbing;
-}
-
-.dugum {
-  --cerceve: color-mix(in srgb, var(--kategori) 30%, transparent);
-  border: 1.5px solid var(--cerceve);
-}
-
-.dugum:hover {
-  --cerceve: color-mix(in srgb, var(--kategori) 60%, transparent);
-}
-
-.dugum[data-selected="true"] {
-  --cerceve: var(--kategori);
-  box-shadow:
-    var(--elevation-2),
-    0 0 0 3px color-mix(in srgb, var(--kategori) 16%, transparent);
-}
-
-.dugum[data-run="running"] {
-  --cerceve: var(--action-primary);
-  animation: node-pulse 1.2s ease-in-out infinite;
-}
-
-.dugum[data-run="success"] {
-  --cerceve: var(--state-success);
-}
-
-.dugum[data-run="error"],
-.dugum[data-invalid="true"] {
-  --cerceve: var(--state-error);
-}
-
-.dugum[data-disabled="true"] {
-  background-image: repeating-linear-gradient(
-    135deg,
-    transparent 0 6px,
-    color-mix(in srgb, var(--border-default) 70%, transparent) 6px 7px
-  );
-}
-
-.kenar-iz {
-  transition:
-    stroke-width 100ms ease-out,
-    stroke-opacity 100ms ease-out;
-}
-
-@media (pointer: coarse) {
-  .react-flow__handle {
-    width: 16px;
-    height: 16px;
-  }
-  .react-flow__handle::after {
-    content: "";
-    position: absolute;
-    inset: -14px;
-  }
-  .dugum {
-    width: 264px !important;
   }
 }
 
