@@ -1,13 +1,12 @@
 "use client";
 
+import { normalizeText } from "@/shared/lib/text";
 import { useState } from "react";
 import { SearchBar } from "@/shared/ui/molecules/SearchBar";
 import { Modal } from "@/shared/ui/molecules/Modal";
 import { catalog, categories, categoryOrder } from "@/shared/domain/nodes/catalog";
 import { useEditor } from "@/features/editor/store/editor";
 import { CategoryIcon } from "@/features/editor/components/CategoryIcon";
-
-const normalize = (value: string) => value.toLocaleLowerCase("tr-TR");
 
 export function NodePicker() {
   const target = useEditor((state) => state.pickerTarget);
@@ -29,7 +28,7 @@ export function NodePicker() {
     close();
   };
 
-  const term = normalize(query.trim());
+  const term = normalizeText(query.trim());
 
   return (
     <Modal open={target !== null} onClose={close} title="Node ekle">
@@ -47,7 +46,7 @@ export function NodePicker() {
             const items = catalog.filter(
               (item) =>
                 item.category === category &&
-                (!term || normalize(item.label).includes(term)),
+                (!term || normalizeText(item.label).includes(term)),
             );
             if (items.length === 0) return null;
             return (

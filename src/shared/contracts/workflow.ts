@@ -3,6 +3,24 @@ import { isValidCron } from "@/shared/domain/nodes/cron";
 
 const categorySchema = z.enum(["start", "trigger", "action", "condition", "data", "end"]);
 
+const keyValueSchema = z.object({
+  id: z.string(),
+  key: z.string(),
+  value: z.string(),
+});
+
+const conditionRuleSchema = z.object({
+  id: z.string(),
+  field: z.string(),
+  operator: z.enum(["equals", "notEquals", "greater", "less", "contains"]),
+  value: z.string(),
+});
+
+const paramValueSchema = z.union([
+  z.string(),
+  z.array(z.union([conditionRuleSchema, keyValueSchema])),
+]);
+
 const nodeSchema = z.object({
   id: z.string().min(1),
   position: z.object({ x: z.number(), y: z.number() }),
@@ -12,7 +30,7 @@ const nodeSchema = z.object({
     label: z.string(),
     description: z.string(),
     disabled: z.boolean(),
-    params: z.record(z.string(), z.any()),
+    params: z.record(z.string(), paramValueSchema),
   }),
 });
 

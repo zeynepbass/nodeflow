@@ -1,5 +1,6 @@
 "use client";
 
+import { normalizeText } from "@/shared/lib/text";
 import { useReactFlow } from "@xyflow/react";
 import { ChevronDown, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import { useState } from "react";
@@ -17,8 +18,6 @@ import { useEditor } from "@/features/editor/store/editor";
 import { CategoryIcon } from "@/features/editor/components/CategoryIcon";
 
 export const DRAG_TYPE = "application/nodeflow-node";
-
-const normalize = (value: string) => value.toLocaleLowerCase("tr-TR");
 
 function LibraryCard({
   item,
@@ -75,7 +74,7 @@ export function NodeLibrary({
   );
   const [query, setQuery] = useState("");
   const [closedGroups, setClosedGroups] = useState<string[]>([]);
-  const term = normalize(query.trim());
+  const term = normalizeText(query.trim());
 
   const addAtCenter = (item: CatalogItem) => {
     const position = flow.screenToFlowPosition({
@@ -148,8 +147,8 @@ export function NodeLibrary({
             (item) =>
               item.category === category &&
               (!term ||
-                normalize(item.label).includes(term) ||
-                normalize(item.description).includes(term)),
+                normalizeText(item.label).includes(term) ||
+                normalizeText(item.description).includes(term)),
           );
           if (items.length === 0) return null;
           const closed = closedGroups.includes(category) && !term;

@@ -1,5 +1,6 @@
 "use client";
 
+import { normalizeText } from "@/shared/lib/text";
 import { Moon, Plus, Search, Sun, Workflow, type LucideIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -16,8 +17,6 @@ interface Command {
   icon: LucideIcon;
   run: () => void;
 }
-
-const normalize = (value: string) => value.toLocaleLowerCase("tr-TR");
 
 export default function CommandPalette() {
   const router = useRouter();
@@ -73,8 +72,8 @@ export default function CommandPalette() {
         run: () => router.push(`/duzenleyici/${item.id}`),
       })),
     ];
-    const term = normalize(query.trim());
-    return term ? all.filter((item) => normalize(item.label).includes(term)) : all;
+    const term = normalizeText(query.trim());
+    return term ? all.filter((item) => normalizeText(item.label).includes(term)) : all;
   }, [query, router, setNewWorkflowOpen, setPreference, workflows]);
 
   const close = () => {
