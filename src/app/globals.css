@@ -109,8 +109,8 @@
   --text-disabled: var(--neutral-600);
   --text-link: var(--primary-400);
   --action-primary: var(--primary-400);
-  --action-primary-hover: var(--primary-300);
-  --action-primary-active: var(--primary-200);
+  --action-primary-hover: var(--primary-500);
+  --action-primary-active: var(--primary-600);
   --accent: var(--secondary-400);
   --focus-glow: rgb(138 110 247 / 0.28);
 
