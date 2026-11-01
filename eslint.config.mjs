@@ -26,6 +26,38 @@ const eslintConfig = defineConfig([
       ],
     },
   },
+  {
+    files: ["src/features/**", "src/widgets/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/server/*"],
+              message: "İstemci kodu sunucu katmanına doğrudan erişemez.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/server/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/features/*", "@/widgets/*", "@/app/*"],
+              message: "Sunucu katmanı arayüz kodunu tanıyamaz.",
+            },
+          ],
+        },
+      ],
+    },
+  },
   globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
 ]);
 

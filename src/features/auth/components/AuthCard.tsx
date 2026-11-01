@@ -25,9 +25,7 @@ export function AuthCard({
         <p className="mt-1 text-fg-muted">{description}</p>
         <div className="mt-6">{children}</div>
       </div>
-      {footer && (
-        <p className="mt-6 text-center text-body text-fg-muted">{footer}</p>
-      )}
+      {footer && <p className="mt-6 text-center text-body text-fg-muted">{footer}</p>}
     </div>
   );
 }

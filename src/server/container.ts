@@ -5,7 +5,11 @@ import { MemoryPreferenceRepository } from "./repositories/memory/preference-rep
 import { MemorySessionRepository } from "./repositories/memory/session-repository";
 import { MemoryUserRepository } from "./repositories/memory/user-repository";
 import type { Activity, Execution, Workflow } from "@/shared/domain/types";
-import { createDemoWorkspace, createStartNode, templateFlows } from "./seed/demo-workspace";
+import {
+  createDemoWorkspace,
+  createStartNode,
+  templateFlows,
+} from "./seed/demo-workspace";
 import { AccountService } from "./services/account-service";
 import { ActivityService } from "./services/activity-service";
 import { AuthService } from "./services/auth-service";

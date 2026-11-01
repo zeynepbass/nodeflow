@@ -2,14 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
-import { executeFlow } from "@/features/executions/lib/execute";
-import { useAuth } from "@/features/auth/store/auth";
-import { toStoredEdge, toStoredNode, useEditor } from "@/features/editor/store/editor";
+import { useExecuteFlow } from "@/features/executions/hooks/useExecutions";
 import { showToast } from "@/shared/stores/toast";
-import { useWorkspace } from "@/features/workflows/store/workspace";
+import { useEditor } from "../store/editor";
 
-export function useRunner() {
+export function useRunner(save: () => Promise<void>) {
   const router = useRouter();
+  const execute = useExecuteFlow();
 
   return useCallback(
     async (trigger: string) => {
@@ -17,54 +16,58 @@ export function useRunner() {
       if (editor.running || !editor.workflowId) return;
       editor.applyDraft();
       editor.clearRunStates();
-      editor.flush();
       editor.setRunState({ running: true });
-      const { name, nodes, edges, workflowId, setNodeRun, setRunState } =
-        useEditor.getState();
+      await save();
+      const { workflowId, setNodeRun, setRunState, snapshotFlow } = useEditor.getState();
+      const { nodes, edges } = snapshotFlow();
 
-      const result = await executeFlow({
-        workflowId: workflowId!,
-        workflowName: name,
-        nodes: nodes.map(toStoredNode),
-        edges: edges.map(toStoredEdge),
-        trigger,
-        hooks: {
-          onNodeStart: (id) =>
-            setNodeRun(id, { runStatus: "running", runError: undefined }),
-          onNodeEnd: (id, run) => {
-            if (!run) {
-              setNodeRun(id, { runStatus: undefined, runError: undefined });
-            } else if (run.ok) {
-              setNodeRun(id, { runStatus: "success", runError: undefined });
-              window.setTimeout(() => {
-                const current = useEditor
-                  .getState()
-                  .nodes.find((node) => node.id === id);
-                if (current?.data.runStatus === "success") {
-                  setNodeRun(id, { runStatus: undefined, runError: undefined });
-                }
-              }, 3000);
-            } else {
-              setNodeRun(id, { runStatus: "error", runError: run.error });
-            }
+      try {
+        const result = await execute({
+          workflowId: workflowId!,
+          nodes,
+          edges,
+          trigger,
+          hooks: {
+            onNodeStart: (id) =>
+              setNodeRun(id, { runStatus: "running", runError: undefined }),
+            onNodeEnd: (id, run) => {
+              if (!run) {
+                setNodeRun(id, { runStatus: undefined, runError: undefined });
+              } else if (run.ok) {
+                setNodeRun(id, { runStatus: "success", runError: undefined });
+                window.setTimeout(() => {
+                  const current = useEditor
+                    .getState()
+                    .nodes.find((node) => node.id === id);
+                  if (current?.data.runStatus === "success") {
+                    setNodeRun(id, { runStatus: undefined, runError: undefined });
+                  }
+                }, 3000);
+              } else {
+                setNodeRun(id, { runStatus: "error", runError: run.error });
+              }
+            },
+            onEdge: (activeEdgeId) => setRunState({ activeEdgeId }),
           },
-          onEdge: (activeEdgeId) => setRunState({ activeEdgeId }),
-        },
-      });
-
-      setRunState({ running: false, activeEdgeId: null });
-      const user = useAuth.getState().user;
-      if (user) useWorkspace.getState().logActivity(user.name, "çalıştırdı", name);
-      showToast({
-        variant: result.status === "success" ? "success" : "error",
-        message:
-          result.status === "success"
-            ? "Workflow başarıyla çalıştı."
-            : "Workflow hatayla sonlandı. Hatalı node'a tıkla.",
-        actionLabel: "Detay",
-        onAction: () => router.push(`/calistirmalar/${result.id}`),
-      });
+        });
+        showToast({
+          variant: result.status === "success" ? "success" : "error",
+          message:
+            result.status === "success"
+              ? "Workflow başarıyla çalıştı."
+              : "Workflow hatayla sonlandı. Hatalı node'a tıkla.",
+          actionLabel: "Detay",
+          onAction: () => router.push(`/calistirmalar/${result.id}`),
+        });
+      } catch (error) {
+        showToast({
+          variant: "error",
+          message: error instanceof Error ? error.message : "Çalıştırma başlatılamadı.",
+        });
+      } finally {
+        setRunState({ running: false, activeEdgeId: null });
+      }
     },
-    [router],
+    [execute, router, save],
   );
 }

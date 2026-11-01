@@ -1,10 +1,4 @@
-export type NodeCategory =
-  | "start"
-  | "trigger"
-  | "action"
-  | "condition"
-  | "data"
-  | "end";
+export type NodeCategory = "start" | "trigger" | "action" | "condition" | "data" | "end";
 
 export interface KeyValue {
   id: string;
@@ -19,12 +13,7 @@ export interface ConditionRule {
   value: string;
 }
 
-export type ConditionOperator =
-  | "equals"
-  | "notEquals"
-  | "greater"
-  | "less"
-  | "contains";
+export type ConditionOperator = "equals" | "notEquals" | "greater" | "less" | "contains";
 
 export type ParamValue = string | KeyValue[] | ConditionRule[];
 export type NodeParams = Record<string, ParamValue>;

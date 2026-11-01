@@ -4,9 +4,7 @@ import { Monitor, Moon, Sun } from "lucide-react";
 import { useTheme } from "@/features/theme/store/theme";
 import { Segmented } from "@/shared/ui/molecules/Segmented";
 
-const icon = (Icon: typeof Sun) => (
-  <Icon size={16} strokeWidth={1.5} aria-hidden />
-);
+const icon = (Icon: typeof Sun) => <Icon size={16} strokeWidth={1.5} aria-hidden />;
 
 export function ThemeSwitcher() {
   const preference = useTheme((state) => state.preference);

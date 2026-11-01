@@ -172,7 +172,10 @@ export function NodeLibrary({
                   size={16}
                   strokeWidth={1.5}
                   aria-hidden
-                  className={cn("transition-transform duration-100", closed && "-rotate-90")}
+                  className={cn(
+                    "transition-transform duration-100",
+                    closed && "-rotate-90",
+                  )}
                 />
               </button>
               {!closed && (

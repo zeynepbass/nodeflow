@@ -4,13 +4,7 @@ import { Spinner } from "@/shared/ui/atoms/Spinner";
 import { cn } from "@/shared/lib/cn";
 
 export type PillStatus =
-  | "success"
-  | "error"
-  | "running"
-  | "waiting"
-  | "active"
-  | "draft"
-  | "stopped";
+  "success" | "error" | "running" | "waiting" | "active" | "draft" | "stopped";
 
 const config: Record<
   PillStatus,
@@ -25,13 +19,7 @@ const config: Record<
   stopped: { label: "Durduruldu", variant: "warning", icon: Pause },
 };
 
-export function StatusPill({
-  status,
-  large,
-}: {
-  status: PillStatus;
-  large?: boolean;
-}) {
+export function StatusPill({ status, large }: { status: PillStatus; large?: boolean }) {
   const { label, variant, icon: Icon } = config[status];
   return (
     <Badge variant={variant} className={cn(large && "h-7 px-3 text-body")}>

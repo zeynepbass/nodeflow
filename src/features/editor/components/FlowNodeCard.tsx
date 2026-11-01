@@ -1,16 +1,7 @@
 "use client";
 
 import { Handle, Position, type NodeProps } from "@xyflow/react";
-import {
-  Ban,
-  Check,
-  Copy,
-  MoreHorizontal,
-  Pencil,
-  Power,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Ban, Check, Copy, MoreHorizontal, Pencil, Power, Trash2, X } from "lucide-react";
 import { memo, useMemo, type CSSProperties } from "react";
 import { Menu } from "@/shared/ui/molecules/Menu";
 import { cn } from "@/shared/lib/cn";

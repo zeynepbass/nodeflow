@@ -56,9 +56,7 @@ export function ExecutionLog({
         </IconButton>
       </div>
       <div className="max-h-96 overflow-auto p-4 font-mono text-code">
-        {lines.length === 0 && (
-          <p className="text-fg-muted">Gösterilecek satır yok.</p>
-        )}
+        {lines.length === 0 && <p className="text-fg-muted">Gösterilecek satır yok.</p>}
         {lines.map((line) => (
           <p
             key={line.id}

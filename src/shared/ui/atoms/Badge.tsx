@@ -1,12 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/shared/lib/cn";
 
-export type BadgeVariant =
-  | "neutral"
-  | "primary"
-  | "success"
-  | "warning"
-  | "error";
+export type BadgeVariant = "neutral" | "primary" | "success" | "warning" | "error";
 
 const variants: Record<BadgeVariant, string> = {
   neutral: "bg-soft-neutral text-on-soft-neutral",

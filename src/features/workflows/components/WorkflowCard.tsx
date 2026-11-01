@@ -46,7 +46,10 @@ export function WorkflowCard({
         </span>
         <span className="flex-1 truncate">{timeAgo(workflow.lastRunAt)}</span>
         {rate !== null && (
-          <span className="inline-flex items-center gap-1" title={`Başarı oranı %${rate}`}>
+          <span
+            className="inline-flex items-center gap-1"
+            title={`Başarı oranı %${rate}`}
+          >
             <span className="h-1 w-12 overflow-hidden rounded-full bg-line">
               <span
                 className="block h-full rounded-full bg-state-success"

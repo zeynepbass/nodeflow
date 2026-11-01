@@ -1,73 +1,76 @@
-import { createId } from "@/shared/lib/id";
-import { useWorkspace } from "@/features/workflows/store/workspace";
+import type {
+  FinishExecutionInput,
+  StartExecutionInput,
+} from "@/shared/contracts/execution";
+import {
+  nextEdges,
+  rootNodes,
+  runNode,
+  type NodeRun,
+} from "@/shared/domain/nodes/engine";
 import type {
   Execution,
+  LogLine,
   NodeResult,
   StoredEdge,
   StoredNode,
 } from "@/shared/domain/types";
-import { nextEdges, rootNodes, runNode, type NodeRun } from "@/shared/domain/nodes/engine";
+import { createId } from "@/shared/lib/id";
 
-interface ExecuteHooks {
+export interface ExecutionGateway {
+  start(input: StartExecutionInput): Promise<Execution>;
+  finish(id: string, input: FinishExecutionInput): Promise<Execution>;
+}
+
+export interface ExecutionHooks {
   onNodeStart?: (nodeId: string) => void;
   onNodeEnd?: (nodeId: string, run: NodeRun | null) => void;
   onEdge?: (edgeId: string | null) => void;
 }
 
-const wait = (ms: number) =>
-  new Promise((resolve) => window.setTimeout(resolve, ms));
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export async function executeFlow({
+  gateway,
   workflowId,
-  workflowName,
   nodes,
   edges,
   trigger,
   stepDelay = 450,
   hooks = {},
 }: {
+  gateway: ExecutionGateway;
   workflowId: string;
-  workflowName: string;
   nodes: StoredNode[];
   edges: StoredEdge[];
   trigger: string;
   stepDelay?: number;
-  hooks?: ExecuteHooks;
+  hooks?: ExecutionHooks;
 }) {
-  const { upsertExecution } = useWorkspace.getState();
-  const startedAt = new Date();
-  const results: NodeResult[] = nodes.map((node) => ({
+  let results: NodeResult[] = nodes.map((node) => ({
     nodeId: node.id,
     label: node.data.label,
     category: node.data.category,
     status: "waiting",
   }));
-  const execution: Execution = {
-    id: createId("calisma"),
-    workflowId,
-    workflowName,
-    status: "running",
-    trigger,
-    startedAt: startedAt.toISOString(),
-    durationMs: 0,
-    nodes: results,
-    logs: [],
-  };
+  const logs: LogLine[] = [];
+  const execution = await gateway.start({ workflowId, trigger, nodes: results });
 
   const patchNode = (nodeId: string, patch: Partial<NodeResult>) => {
-    execution.nodes = execution.nodes.map((item) =>
+    results = results.map((item) =>
       item.nodeId === nodeId ? { ...item, ...patch } : item,
     );
   };
-  const log = (message: string, level: "info" | "error", nodeId: string) => {
-    execution.logs = [
-      ...execution.logs,
-      { id: createId("log"), at: new Date().toISOString(), message, level, nodeId },
-    ];
+  const log = (message: string, level: LogLine["level"], nodeId: string) => {
+    logs.push({
+      id: createId("log"),
+      at: new Date().toISOString(),
+      message,
+      level,
+      nodeId,
+    });
   };
-  const publish = () => upsertExecution({ ...execution });
 
-  publish();
   const queue = [...rootNodes(nodes, edges)];
   const seen = new Set<string>();
   let failed = false;
@@ -77,7 +80,6 @@ export async function executeFlow({
     if (seen.has(node.id)) continue;
     seen.add(node.id);
     patchNode(node.id, { status: "running" });
-    publish();
     hooks.onNodeStart?.(node.id);
     await wait(stepDelay);
 
@@ -93,7 +95,6 @@ export async function executeFlow({
       patchNode(node.id, { status: "skipped" });
       log(`"${node.data.label}" devre dışı olduğu için atlandı`, "info", node.id);
       hooks.onNodeEnd?.(node.id, null);
-      publish();
       enqueue();
       continue;
     }
@@ -103,7 +104,6 @@ export async function executeFlow({
       patchNode(node.id, { status: "success" });
       log(run.log, "info", node.id);
       hooks.onNodeEnd?.(node.id, run);
-      publish();
       enqueue(run.branch);
     } else {
       failed = true;
@@ -114,25 +114,9 @@ export async function executeFlow({
   }
 
   hooks.onEdge?.(null);
-  const finishedAt = new Date();
-  execution.status = failed ? "error" : "success";
-  execution.finishedAt = finishedAt.toISOString();
-  execution.durationMs = finishedAt.getTime() - startedAt.getTime();
-  publish();
-  return execution;
-}
-
-export function rerunWorkflow(workflowId: string, trigger = "Manuel") {
-  const workflow = useWorkspace
-    .getState()
-    .workflows.find((item) => item.id === workflowId);
-  if (!workflow) return null;
-  return executeFlow({
-    workflowId: workflow.id,
-    workflowName: workflow.name,
-    nodes: workflow.nodes,
-    edges: workflow.edges,
-    trigger,
-    stepDelay: 180,
+  return gateway.finish(execution.id, {
+    status: failed ? "error" : "success",
+    nodes: results,
+    logs,
   });
 }

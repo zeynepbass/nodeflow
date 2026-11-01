@@ -1,5 +1,5 @@
 import { ChevronDown } from "lucide-react";
-import type { SelectHTMLAttributes } from "react";
+import { forwardRef, type SelectHTMLAttributes } from "react";
 import { cn } from "@/shared/lib/cn";
 import { fieldClass } from "@/shared/ui/atoms/Input";
 
@@ -8,10 +8,14 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   options: { value: string; label: string }[];
 }
 
-export function Select({ invalid, options, className, ...props }: SelectProps) {
+export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(
+  { invalid, options, className, ...props },
+  ref,
+) {
   return (
     <span className={cn("relative block", className)}>
       <select
+        ref={ref}
         aria-invalid={invalid || undefined}
         className={cn(fieldClass(invalid), "h-10 appearance-none pr-8")}
         {...props}
@@ -30,4 +34,4 @@ export function Select({ invalid, options, className, ...props }: SelectProps) {
       />
     </span>
   );
-}
+});

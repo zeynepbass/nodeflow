@@ -1,8 +1,8 @@
 import type { OwnedRepository } from "../types";
 
-export class MemoryOwnedRepository<T extends { id: string }>
-  implements OwnedRepository<T>
-{
+export class MemoryOwnedRepository<
+  T extends { id: string },
+> implements OwnedRepository<T> {
   private readonly owners = new Map<string, Map<string, T>>();
 
   private collection(ownerId: string) {
@@ -14,9 +14,7 @@ export class MemoryOwnedRepository<T extends { id: string }>
   }
 
   async list(ownerId: string) {
-    return [...this.collection(ownerId).values()].map((item) =>
-      structuredClone(item),
-    );
+    return [...this.collection(ownerId).values()].map((item) => structuredClone(item));
   }
 
   async find(ownerId: string, id: string) {

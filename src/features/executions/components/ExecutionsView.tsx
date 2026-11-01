@@ -10,8 +10,10 @@ import { EmptyState } from "@/shared/ui/molecules/EmptyState";
 import { StatusPill } from "@/shared/ui/molecules/StatusPill";
 import { cn } from "@/shared/lib/cn";
 import { formatDateTime, formatDuration, timeAgo } from "@/shared/lib/format";
-import { rerunWorkflow } from "@/features/executions/lib/execute";
-import { useWorkspace } from "@/features/workflows/store/workspace";
+import { useWorkflows } from "@/features/workflows/hooks/useWorkflows";
+import { QueryError } from "@/shared/ui/molecules/QueryError";
+import { Spinner } from "@/shared/ui/atoms/Spinner";
+import { useExecutions, useRerunWorkflow } from "../hooks/useExecutions";
 import type { Execution } from "@/shared/domain/types";
 import { ExecutionLog } from "@/features/executions/components/ExecutionLog";
 import { NodeStrip } from "@/features/executions/components/NodeStrip";
@@ -22,15 +24,13 @@ type RangeFilter = "all" | "today" | "week";
 function inRange(iso: string, range: RangeFilter) {
   if (range === "all") return true;
   const start =
-    range === "today"
-      ? new Date().setHours(0, 0, 0, 0)
-      : Date.now() - 7 * 86400000;
+    range === "today" ? new Date().setHours(0, 0, 0, 0) : Date.now() - 7 * 86400000;
   return new Date(iso).getTime() >= start;
 }
 
 function ExecutionDetail({ execution }: { execution: Execution }) {
   const router = useRouter();
-  const [rerunning, setRerunning] = useState(false);
+  const rerun = useRerunWorkflow();
   const [highlight, setHighlight] = useState<string | null>(null);
 
   return (
@@ -65,13 +65,13 @@ function ExecutionDetail({ execution }: { execution: Execution }) {
         </div>
         <Button
           variant="secondary"
-          loading={rerunning}
-          onClick={async () => {
-            setRerunning(true);
-            const result = await rerunWorkflow(execution.workflowId);
-            setRerunning(false);
-            if (result) router.push(`/calistirmalar/${result.id}`);
-          }}
+          loading={rerun.isPending}
+          onClick={() =>
+            rerun.mutate(
+              { id: execution.workflowId },
+              { onSuccess: (result) => router.push(`/calistirmalar/${result.id}`) },
+            )
+          }
         >
           <RotateCcw size={16} strokeWidth={1.5} aria-hidden />
           Tekrar Çalıştır
@@ -85,8 +85,11 @@ function ExecutionDetail({ execution }: { execution: Execution }) {
 
 export function ExecutionsView({ selectedId }: { selectedId?: string }) {
   const router = useRouter();
-  const executions = useWorkspace((state) => state.executions);
-  const workflows = useWorkspace((state) => state.workflows);
+  const executionsQuery = useExecutions();
+  const workflowsQuery = useWorkflows();
+  const rerun = useRerunWorkflow();
+  const executions = useMemo(() => executionsQuery.data ?? [], [executionsQuery.data]);
+  const workflows = workflowsQuery.data ?? [];
   const [status, setStatus] = useState<StatusFilter>("all");
   const [range, setRange] = useState<RangeFilter>("all");
 
@@ -94,11 +97,21 @@ export function ExecutionsView({ selectedId }: { selectedId?: string }) {
     () =>
       executions.filter(
         (item) =>
-          (status === "all" || item.status === status) &&
-          inRange(item.startedAt, range),
+          (status === "all" || item.status === status) && inRange(item.startedAt, range),
       ),
     [executions, range, status],
   );
+
+  if (executionsQuery.isPending) {
+    return (
+      <div className="flex justify-center py-20 text-fg-muted">
+        <Spinner size={24} />
+      </div>
+    );
+  }
+  if (executionsQuery.isError) {
+    return <QueryError onRetry={() => executionsQuery.refetch()} />;
+  }
 
   if (executions.length === 0) {
     const first = workflows[0];
@@ -109,10 +122,13 @@ export function ExecutionsView({ selectedId }: { selectedId?: string }) {
         action={
           first ? (
             <Button
-              onClick={async () => {
-                const result = await rerunWorkflow(first.id);
-                if (result) router.push(`/calistirmalar/${result.id}`);
-              }}
+              loading={rerun.isPending}
+              onClick={() =>
+                rerun.mutate(
+                  { id: first.id },
+                  { onSuccess: (result) => router.push(`/calistirmalar/${result.id}`) },
+                )
+              }
             >
               <Play size={16} strokeWidth={1.5} aria-hidden />
               Şimdi Çalıştır
@@ -135,7 +151,9 @@ export function ExecutionsView({ selectedId }: { selectedId?: string }) {
     <div className="flex flex-col gap-4">
       <h1 className="text-h1">Çalıştırmalar</h1>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
-        <section className={cn("flex min-w-0 flex-col gap-3", selectedId && "max-lg:hidden")}>
+        <section
+          className={cn("flex min-w-0 flex-col gap-3", selectedId && "max-lg:hidden")}
+        >
           <div className="grid grid-cols-2 gap-2">
             <Select
               aria-label="Durum"
@@ -176,11 +194,15 @@ export function ExecutionsView({ selectedId }: { selectedId?: string }) {
                       aria-current={active ? "true" : undefined}
                       className={cn(
                         "block rounded-md border bg-surface p-3 transition-colors duration-100 hover:border-primary-200",
-                        active ? "border-primary-500" : "border-transparent shadow-elevation-1",
+                        active
+                          ? "border-primary-500"
+                          : "border-transparent shadow-elevation-1",
                       )}
                     >
                       <div className="flex items-center justify-between gap-2">
-                        <span className="truncate font-semibold">{item.workflowName}</span>
+                        <span className="truncate font-semibold">
+                          {item.workflowName}
+                        </span>
                         <StatusPill status={item.status} />
                       </div>
                       <p className="mt-1 text-caption text-fg-muted">
@@ -208,9 +230,7 @@ export function ExecutionsView({ selectedId }: { selectedId?: string }) {
           {selected ? (
             <ExecutionDetail key={selected.id} execution={selected} />
           ) : (
-            <p className="py-8 text-center text-fg-muted">
-              Çalıştırma kaydı bulunamadı.
-            </p>
+            <p className="py-8 text-center text-fg-muted">Çalıştırma kaydı bulunamadı.</p>
           )}
         </div>
       </div>

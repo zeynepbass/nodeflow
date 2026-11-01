@@ -4,14 +4,13 @@ import { ChevronDown, LogOut, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Avatar } from "@/shared/ui/atoms/Avatar";
 import { cn } from "@/shared/lib/cn";
-import { useAuth } from "@/features/auth/store/auth";
+import { useCurrentUser, useLogout } from "../hooks/useAuth";
 import { Menu } from "@/shared/ui/molecules/Menu";
 
 export function UserMenu({ compact }: { compact?: boolean }) {
   const router = useRouter();
-  const user = useAuth((state) => state.user);
-  const logout = useAuth((state) => state.logout);
-  if (!user) return null;
+  const user = useCurrentUser();
+  const logout = useLogout();
   return (
     <Menu
       direction="up"
@@ -22,10 +21,7 @@ export function UserMenu({ compact }: { compact?: boolean }) {
         {
           label: "Çıkış Yap",
           icon: LogOut,
-          onSelect: () => {
-            logout();
-            router.push("/giris");
-          },
+          onSelect: () => logout.mutate(),
         },
       ]}
       trigger={({ open, toggle }) => (
@@ -49,7 +45,12 @@ export function UserMenu({ compact }: { compact?: boolean }) {
                   {user.email}
                 </span>
               </span>
-              <ChevronDown size={16} strokeWidth={1.5} aria-hidden className="text-fg-muted" />
+              <ChevronDown
+                size={16}
+                strokeWidth={1.5}
+                aria-hidden
+                className="text-fg-muted"
+              />
             </>
           )}
         </button>

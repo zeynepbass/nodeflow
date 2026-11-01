@@ -6,11 +6,10 @@ import { Checkbox } from "@/shared/ui/atoms/Checkbox";
 import { IconButton } from "@/shared/ui/atoms/IconButton";
 import { StatusPill } from "@/shared/ui/molecules/StatusPill";
 import { timeAgo } from "@/shared/lib/format";
-import { rerunWorkflow } from "@/features/executions/lib/execute";
-import { showToast } from "@/shared/stores/toast";
+import { useRerunWorkflow } from "@/features/executions/hooks/useExecutions";
 import type { Execution, Workflow } from "@/shared/domain/types";
 import { successRate } from "@/features/workflows/lib/workflows";
-import { duplicateWithUndo } from "@/features/workflows/components/WorkflowActions";
+import { useDuplicateWorkflow } from "../hooks/useWorkflows";
 
 export function WorkflowTable({
   workflows,
@@ -25,6 +24,8 @@ export function WorkflowTable({
   onSelectionChange: (ids: string[]) => void;
   onDelete: (ids: string[]) => void;
 }) {
+  const rerun = useRerunWorkflow();
+  const duplicate = useDuplicateWorkflow();
   const allSelected = workflows.length > 0 && selected.length === workflows.length;
   return (
     <div className="overflow-x-auto rounded-lg bg-surface shadow-elevation-1">
@@ -90,18 +91,7 @@ export function WorkflowTable({
                       label="Çalıştır"
                       size="sm"
                       tooltipSide="left"
-                      onClick={async () => {
-                        const result = await rerunWorkflow(workflow.id);
-                        if (result) {
-                          showToast({
-                            variant: result.status === "success" ? "success" : "error",
-                            message:
-                              result.status === "success"
-                                ? `${workflow.name} başarıyla çalıştı.`
-                                : `${workflow.name} hatayla sonlandı.`,
-                          });
-                        }
-                      }}
+                      onClick={() => rerun.mutate({ id: workflow.id })}
                     >
                       <Play size={16} strokeWidth={1.5} aria-hidden />
                     </IconButton>
@@ -109,7 +99,7 @@ export function WorkflowTable({
                       label="Kopyala"
                       size="sm"
                       tooltipSide="left"
-                      onClick={() => duplicateWithUndo(workflow.id)}
+                      onClick={() => duplicate(workflow.id)}
                     >
                       <Copy size={16} strokeWidth={1.5} aria-hidden />
                     </IconButton>

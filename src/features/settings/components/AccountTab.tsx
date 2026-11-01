@@ -1,66 +1,70 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, Laptop, Smartphone, X } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
+import {
+  useChangePassword,
+  useDeleteAccount,
+  useEndSession,
+  useSessions,
+} from "@/features/auth/hooks/useAuth";
+import { cn } from "@/shared/lib/cn";
+import { ApiError } from "@/shared/api/http-client";
+import { changePasswordSchema, type ChangePasswordInput } from "@/shared/contracts/auth";
+import { passwordRules } from "@/shared/domain/password";
+import { showToast } from "@/shared/stores/toast";
 import { Badge } from "@/shared/ui/atoms/Badge";
 import { Button } from "@/shared/ui/atoms/Button";
 import { Input } from "@/shared/ui/atoms/Input";
+import { Spinner } from "@/shared/ui/atoms/Spinner";
 import { Toggle } from "@/shared/ui/atoms/Toggle";
 import { FormField } from "@/shared/ui/molecules/FormField";
 import { Modal } from "@/shared/ui/molecules/Modal";
 import { PasswordInput } from "@/shared/ui/molecules/PasswordInput";
-import { cn } from "@/shared/lib/cn";
-import { passwordRules, passwordScore } from "@/shared/domain/password";
-import { useAuth } from "@/features/auth/store/auth";
-import { usePreferences } from "@/features/settings/store/preferences";
-import { showToast } from "@/shared/stores/toast";
+import { usePreferences, useUpdatePreferences } from "../hooks/usePreferences";
 
 function PasswordForm() {
-  const changePassword = useAuth((state) => state.changePassword);
-  const [current, setCurrent] = useState("");
-  const [next, setNext] = useState("");
-  const [repeat, setRepeat] = useState("");
-  const [errors, setErrors] = useState<{ current?: string; repeat?: string }>({});
-
-  const submit = async (event: FormEvent) => {
-    event.preventDefault();
-    if (passwordScore(next) < passwordRules.length) return;
-    if (next !== repeat) {
-      setErrors({ repeat: "Şifreler eşleşmiyor." });
-      return;
-    }
-    const ok = await changePassword(current, next);
-    if (!ok) {
-      setErrors({ current: "Mevcut şifre hatalı." });
-      return;
-    }
-    setErrors({});
-    setCurrent("");
-    setNext("");
-    setRepeat("");
-    showToast({ message: "Şifren değiştirildi." });
-  };
+  const change = useChangePassword();
+  const form = useForm<ChangePasswordInput>({
+    resolver: zodResolver(changePasswordSchema),
+    defaultValues: { current: "", next: "", repeat: "" },
+  });
+  const { errors } = form.formState;
+  const next = useWatch({ control: form.control, name: "next" });
 
   return (
-    <form onSubmit={submit} noValidate className="flex flex-col gap-4">
+    <form
+      noValidate
+      className="flex flex-col gap-4"
+      onSubmit={form.handleSubmit((values) =>
+        change.mutate(values, {
+          onSuccess: () => {
+            form.reset();
+            showToast({ message: "Şifren değiştirildi." });
+          },
+          onError: (error) => {
+            if (error instanceof ApiError && error.code === "mevcut-sifre-hatali") {
+              form.setError("current", { message: error.message });
+            } else {
+              showToast({ variant: "error", message: error.message });
+            }
+          },
+        }),
+      )}
+    >
       <h2 className="text-h3">Şifre değiştir</h2>
-      <FormField label="Mevcut şifre" htmlFor="mevcut" error={errors.current}>
+      <FormField label="Mevcut şifre" htmlFor="mevcut" error={errors.current?.message}>
         <PasswordInput
           id="mevcut"
           autoComplete="current-password"
-          value={current}
           invalid={Boolean(errors.current)}
-          onChange={(event) => setCurrent(event.target.value)}
+          {...form.register("current")}
         />
       </FormField>
       <FormField label="Yeni şifre" htmlFor="yeni">
-        <PasswordInput
-          id="yeni"
-          autoComplete="new-password"
-          value={next}
-          onChange={(event) => setNext(event.target.value)}
-        />
+        <PasswordInput id="yeni" autoComplete="new-password" {...form.register("next")} />
         {next && (
           <ul className="mt-2 flex flex-col gap-1 text-caption">
             {passwordRules.map((rule) => {
@@ -82,17 +86,20 @@ function PasswordForm() {
           </ul>
         )}
       </FormField>
-      <FormField label="Yeni şifre tekrar" htmlFor="tekrar" error={errors.repeat}>
+      <FormField
+        label="Yeni şifre tekrar"
+        htmlFor="tekrar"
+        error={errors.repeat?.message}
+      >
         <PasswordInput
           id="tekrar"
           autoComplete="new-password"
-          value={repeat}
           invalid={Boolean(errors.repeat)}
-          onChange={(event) => setRepeat(event.target.value)}
+          {...form.register("repeat")}
         />
       </FormField>
       <div className="flex justify-end">
-        <Button type="submit" variant="secondary" disabled={!current || !next}>
+        <Button type="submit" variant="secondary" loading={change.isPending}>
           Şifreyi Güncelle
         </Button>
       </div>
@@ -100,19 +107,57 @@ function PasswordForm() {
   );
 }
 
-const initialSessions = [
-  { id: "bu", device: "MacBook · Chrome", location: "İstanbul", icon: Laptop, current: true },
-  { id: "telefon", device: "iPhone · Safari", location: "Ankara", icon: Smartphone, current: false },
-];
+function SessionList() {
+  const { data } = useSessions();
+  const end = useEndSession();
+
+  if (!data) {
+    return (
+      <div className="flex justify-center py-4 text-fg-muted">
+        <Spinner />
+      </div>
+    );
+  }
+  return (
+    <ul className="divide-y divide-line">
+      {data.map(({ id, device, location, current }) => {
+        const Icon = /iPhone|Android/.test(device) ? Smartphone : Laptop;
+        return (
+          <li key={id} className="flex items-center gap-3 py-3">
+            <Icon size={20} strokeWidth={1.5} aria-hidden className="text-fg-muted" />
+            <div className="min-w-0 flex-1">
+              <p className="font-medium">{device}</p>
+              <p className="text-caption text-fg-muted">{location}</p>
+            </div>
+            {current ? (
+              <Badge variant="primary">Bu Oturum</Badge>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  end.mutate(id, {
+                    onSuccess: () => showToast({ message: "Oturum sonlandırıldı." }),
+                  })
+                }
+              >
+                Sonlandır
+              </Button>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
 
 export function AccountTab() {
-  const router = useRouter();
-  const deleteAccount = useAuth((state) => state.deleteAccount);
-  const twoFactor = usePreferences((state) => state.twoFactor);
-  const setTwoFactor = usePreferences((state) => state.setTwoFactor);
-  const [sessions, setSessions] = useState(initialSessions);
+  const remove = useDeleteAccount();
+  const { data: preferences } = usePreferences();
+  const updatePreferences = useUpdatePreferences();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [confirmation, setConfirmation] = useState("");
+  const twoFactor = preferences?.twoFactor ?? false;
 
   const closeDelete = () => {
     setDeleteOpen(false);
@@ -133,37 +178,14 @@ export function AccountTab() {
         <Toggle
           label="İki adımlı doğrulama"
           checked={twoFactor}
-          onChange={setTwoFactor}
+          disabled={!preferences}
+          onChange={(value) => updatePreferences.mutate({ twoFactor: value })}
         />
       </section>
 
       <section>
         <h2 className="mb-2 text-h3">Aktif oturumlar</h2>
-        <ul className="divide-y divide-line">
-          {sessions.map(({ id, device, location, icon: Icon, current }) => (
-            <li key={id} className="flex items-center gap-3 py-3">
-              <Icon size={20} strokeWidth={1.5} aria-hidden className="text-fg-muted" />
-              <div className="min-w-0 flex-1">
-                <p className="font-medium">{device}</p>
-                <p className="text-caption text-fg-muted">{location}</p>
-              </div>
-              {current ? (
-                <Badge variant="primary">Bu Oturum</Badge>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setSessions((value) => value.filter((item) => item.id !== id));
-                    showToast({ message: "Oturum sonlandırıldı." });
-                  }}
-                >
-                  Sonlandır
-                </Button>
-              )}
-            </li>
-          ))}
-        </ul>
+        <SessionList />
       </section>
 
       <section className="rounded-lg border border-error-500/40 p-5">
@@ -192,10 +214,8 @@ export function AccountTab() {
             <Button
               variant="destructive"
               disabled={confirmation !== "SİL"}
-              onClick={async () => {
-                await deleteAccount();
-                router.push("/giris");
-              }}
+              loading={remove.isPending}
+              onClick={() => remove.mutate()}
             >
               Hesabı Sil
             </Button>

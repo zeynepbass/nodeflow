@@ -12,8 +12,7 @@ import { useRef, useState } from "react";
 import { categories } from "@/shared/domain/nodes/catalog";
 import { useEditor, type FlowEdge, type FlowNode } from "@/features/editor/store/editor";
 
-const reducedMotion = () =>
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function arrow(x: number, y: number) {
   return `M ${x - 8} ${y - 5} L ${x - 1} ${y} L ${x - 8} ${y + 5}`;
@@ -69,7 +68,13 @@ export function FlowEdgeLine({
   return (
     <>
       <g onMouseEnter={enter} onMouseLeave={leave}>
-        <BaseEdge id={id} path={path} className="kenar-iz" style={stroke} interactionWidth={24} />
+        <BaseEdge
+          id={id}
+          path={path}
+          className="kenar-iz"
+          style={stroke}
+          interactionWidth={24}
+        />
         <path
           d={arrow(targetX, targetY)}
           fill="none"
@@ -140,9 +145,7 @@ export function FlowConnectionLine({
       strokeWidth={2}
       strokeDasharray={connectionStatus === "invalid" ? "6 4" : undefined}
       stroke={
-        connectionStatus === "invalid"
-          ? "var(--state-error)"
-          : "var(--action-primary)"
+        connectionStatus === "invalid" ? "var(--state-error)" : "var(--action-primary)"
       }
     />
   );

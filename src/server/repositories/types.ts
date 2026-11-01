@@ -1,10 +1,5 @@
 import type { Preferences } from "@/shared/contracts/preferences";
-import type {
-  Activity,
-  Execution,
-  UserProfile,
-  Workflow,
-} from "@/shared/domain/types";
+import type { Activity, Execution, UserProfile, Workflow } from "@/shared/domain/types";
 
 export interface UserRecord extends UserProfile {
   passwordHash: string;

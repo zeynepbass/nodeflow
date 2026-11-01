@@ -33,7 +33,12 @@ function ToastItem({ toast }: { toast: Toast }) {
       onMouseLeave={start}
       className="pointer-events-auto flex w-80 max-w-[calc(100vw-32px)] animate-toast-in items-center gap-2 rounded-md border border-line bg-surface px-3 py-2 shadow-elevation-3"
     >
-      <Icon size={20} strokeWidth={1.5} aria-hidden className={`shrink-0 ${tones[toast.variant]}`} />
+      <Icon
+        size={20}
+        strokeWidth={1.5}
+        aria-hidden
+        className={`shrink-0 ${tones[toast.variant]}`}
+      />
       <p className="flex-1 text-body">{toast.message}</p>
       {toast.onAction && (
         <button

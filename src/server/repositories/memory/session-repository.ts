@@ -4,16 +4,11 @@ export class MemorySessionRepository implements SessionRepository {
   private readonly sessions = new Map<string, SessionRecord>();
 
   async findByToken(token: string) {
-    return (
-      [...this.sessions.values()].find((session) => session.token === token) ??
-      null
-    );
+    return [...this.sessions.values()].find((session) => session.token === token) ?? null;
   }
 
   async listByUser(userId: string) {
-    return [...this.sessions.values()].filter(
-      (session) => session.userId === userId,
-    );
+    return [...this.sessions.values()].filter((session) => session.userId === userId);
   }
 
   async save(session: SessionRecord) {

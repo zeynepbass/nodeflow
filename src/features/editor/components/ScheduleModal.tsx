@@ -1,81 +1,68 @@
 "use client";
 
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm, useWatch } from "react-hook-form";
+import { useUpdateWorkflow, useWorkflow } from "@/features/workflows/hooks/useWorkflows";
+import { scheduleFormSchema } from "@/shared/contracts/workflow";
+import { describeCron } from "@/shared/domain/nodes/cron";
+import { showToast } from "@/shared/stores/toast";
 import { Button } from "@/shared/ui/atoms/Button";
 import { Input } from "@/shared/ui/atoms/Input";
 import { FormField } from "@/shared/ui/molecules/FormField";
 import { Modal } from "@/shared/ui/molecules/Modal";
-import { describeCron, isValidCron } from "@/shared/domain/nodes/cron";
-import { useEditor } from "@/features/editor/store/editor";
-import { showToast } from "@/shared/stores/toast";
-import { useWorkspace } from "@/features/workflows/store/workspace";
+import { useEditor } from "../store/editor";
 
-export function ScheduleModal({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) {
+export function ScheduleModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const workflowId = useEditor((state) => state.workflowId);
-  const stored = useWorkspace(
-    (state) => state.workflows.find((item) => item.id === workflowId)?.schedule,
-  );
-  const setSchedule = useWorkspace((state) => state.setSchedule);
-  const [draft, setDraft] = useState<string | null>(null);
-  const [touched, setTouched] = useState(false);
-  const value = draft ?? stored ?? "0 9 * * *";
-  const valid = isValidCron(value);
-
-  const close = () => {
-    setDraft(null);
-    setTouched(false);
-    onClose();
-  };
+  const { data: workflow } = useWorkflow(workflowId);
+  const update = useUpdateWorkflow();
+  const form = useForm<{ schedule: string }>({
+    resolver: zodResolver(scheduleFormSchema),
+    values: { schedule: workflow?.schedule ?? "0 9 * * *" },
+  });
+  const { errors } = form.formState;
+  const schedule = useWatch({ control: form.control, name: "schedule" });
 
   return (
-    <Modal
-      open={open}
-      onClose={close}
-      title="Zamanla"
-      footer={
-        <>
-          <Button variant="ghost" onClick={close}>
+    <Modal open={open} onClose={onClose} title="Zamanla">
+      <form
+        noValidate
+        className="flex flex-col gap-4"
+        onSubmit={form.handleSubmit((values) =>
+          update.mutate(
+            { id: workflowId!, patch: values },
+            {
+              onSuccess: () => {
+                showToast({ message: `Zamanlandı: ${describeCron(values.schedule)}` });
+                onClose();
+              },
+            },
+          ),
+        )}
+      >
+        <FormField
+          label="Cron ifadesi"
+          htmlFor="zamanlama"
+          required
+          error={errors.schedule?.message}
+          hint={describeCron(schedule ?? "") || undefined}
+        >
+          <Input
+            id="zamanlama"
+            mono
+            invalid={Boolean(errors.schedule)}
+            {...form.register("schedule")}
+          />
+        </FormField>
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" onClick={onClose}>
             İptal
           </Button>
-          <Button
-            onClick={() => {
-              setTouched(true);
-              if (!valid || !workflowId) return;
-              setSchedule(workflowId, value.trim());
-              showToast({ message: `Zamanlandı: ${describeCron(value)}` });
-              close();
-            }}
-          >
+          <Button type="submit" loading={update.isPending}>
             Kaydet
           </Button>
-        </>
-      }
-    >
-      <FormField
-        label="Cron ifadesi"
-        htmlFor="zamanlama"
-        required
-        error={
-          touched && !valid
-            ? "Geçerli bir ifade değil. Örnek: 0 9 * * *"
-            : undefined
-        }
-        hint={describeCron(value) || undefined}
-      >
-        <Input
-          id="zamanlama"
-          mono
-          value={value}
-          invalid={touched && !valid}
-          onChange={(event) => setDraft(event.target.value)}
-        />
-      </FormField>
+        </div>
+      </form>
     </Modal>
   );
 }

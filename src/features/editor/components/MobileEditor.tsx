@@ -12,7 +12,7 @@ import { categories } from "@/shared/domain/nodes/catalog";
 import { timeAgo } from "@/shared/lib/format";
 import { hasErrors } from "@/shared/domain/nodes/validation";
 import { useEditor, type FlowEdge, type FlowNode } from "@/features/editor/store/editor";
-import { useWorkspace } from "@/features/workflows/store/workspace";
+import { useWorkflow } from "@/features/workflows/hooks/useWorkflows";
 import { CategoryIcon } from "@/features/editor/components/CategoryIcon";
 import { EditableName } from "@/features/editor/components/EditorToolbar";
 import { NodePicker } from "@/features/editor/components/NodePicker";
@@ -25,11 +25,18 @@ function RunIcon({ node }: { node: FlowNode }) {
   if (status === "running") return <Spinner size={16} className="text-link" />;
   if (status === "success") {
     return (
-      <Check size={16} strokeWidth={2} aria-label="Başarılı" className="text-state-success" />
+      <Check
+        size={16}
+        strokeWidth={2}
+        aria-label="Başarılı"
+        className="text-state-success"
+      />
     );
   }
   if (status === "error" || hasErrors(node.data)) {
-    return <X size={16} strokeWidth={2} aria-label="Hatalı" className="text-state-error" />;
+    return (
+      <X size={16} strokeWidth={2} aria-label="Hatalı" className="text-state-error" />
+    );
   }
   return null;
 }
@@ -183,12 +190,11 @@ function Chain({ item, lastRunAt }: { item: OutlineItem; lastRunAt?: string }) {
   );
 }
 
-export function MobileEditor({ onRetrySave }: { onRetrySave: () => void }) {
-  const run = useRunner();
+export function MobileEditor({ onRetrySave }: { onRetrySave: () => Promise<void> }) {
+  const run = useRunner(onRetrySave);
   const workflowId = useEditor((state) => state.workflowId);
-  const lastRunAt = useWorkspace(
-    (state) => state.workflows.find((item) => item.id === workflowId)?.lastRunAt,
-  );
+  const { data: workflow } = useWorkflow(workflowId);
+  const lastRunAt = workflow?.lastRunAt;
   const nodes = useEditor((state) => state.nodes);
   const edges = useEditor((state) => state.edges);
   const saveState = useEditor((state) => state.saveState);

@@ -40,7 +40,10 @@ export function FormField({
         </Label>
         {labelAside}
       </div>
-      <div key={error ? "hata" : "normal"} className={error ? "animate-shake" : undefined}>
+      <div
+        key={error ? "hata" : "normal"}
+        className={error ? "animate-shake" : undefined}
+      >
         {children}
       </div>
       {error ? (

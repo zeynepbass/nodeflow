@@ -7,7 +7,7 @@ import { cn } from "@/shared/lib/cn";
 import { navigation } from "@/widgets/app-shell/navigation";
 import { useTheme } from "@/features/theme/store/theme";
 import { useUi } from "@/shared/stores/ui";
-import { useWorkspace } from "@/features/workflows/store/workspace";
+import { useWorkflows } from "@/features/workflows/hooks/useWorkflows";
 
 interface Command {
   id: string;
@@ -24,7 +24,7 @@ export function CommandPalette() {
   const open = useUi((state) => state.paletteOpen);
   const setOpen = useUi((state) => state.setPaletteOpen);
   const setNewWorkflowOpen = useUi((state) => state.setNewWorkflowOpen);
-  const workflows = useWorkspace((state) => state.workflows);
+  const { data: workflows } = useWorkflows(open);
   const setPreference = useTheme((state) => state.setPreference);
   const dialog = useRef<HTMLDialogElement>(null);
   const [query, setQuery] = useState("");
@@ -76,7 +76,7 @@ export function CommandPalette() {
         icon: item.icon,
         run: () => router.push(item.href),
       })),
-      ...workflows.map((item) => ({
+      ...(workflows ?? []).map((item) => ({
         id: item.id,
         label: item.name,
         hint: "Workflow",
@@ -85,9 +85,7 @@ export function CommandPalette() {
       })),
     ];
     const term = normalize(query.trim());
-    return term
-      ? all.filter((item) => normalize(item.label).includes(term))
-      : all;
+    return term ? all.filter((item) => normalize(item.label).includes(term)) : all;
   }, [query, router, setNewWorkflowOpen, setPreference, workflows]);
 
   const close = () => {
@@ -154,7 +152,12 @@ export function CommandPalette() {
                     index === cursor && "bg-surface-hover",
                   )}
                 >
-                  <command.icon size={16} strokeWidth={1.5} aria-hidden className="text-fg-muted" />
+                  <command.icon
+                    size={16}
+                    strokeWidth={1.5}
+                    aria-hidden
+                    className="text-fg-muted"
+                  />
                   <span className="flex-1 truncate">{command.label}</span>
                   <span className="text-caption text-fg-muted">{command.hint}</span>
                 </button>

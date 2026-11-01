@@ -6,9 +6,7 @@ export const themeScript = `(function(){try{var t=localStorage.getItem("${THEME_
 
 export function resolveTheme(preference: ThemePreference): "light" | "dark" {
   if (preference !== "system") return preference;
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
 export function applyTheme(preference: ThemePreference) {

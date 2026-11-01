@@ -102,7 +102,12 @@ export function runNode(data: FlowNodeData): NodeRun {
   }
   if (data.category === "condition") return runCondition(data, durationMs);
   if (data.category === "start") {
-    return { ok: true, log: "Başlangıç çalıştırıldı", output: { baslatildi: true }, durationMs };
+    return {
+      ok: true,
+      log: "Başlangıç çalıştırıldı",
+      output: { baslatildi: true },
+      durationMs,
+    };
   }
   if (data.category === "trigger") {
     return {
@@ -139,21 +144,12 @@ export function rootNodes(nodes: StoredNode[], edges: StoredEdge[]) {
   );
 }
 
-export const nextEdges = (
-  node: StoredNode,
-  edges: StoredEdge[],
-  branch?: "yes" | "no",
-) =>
+export const nextEdges = (node: StoredNode, edges: StoredEdge[], branch?: "yes" | "no") =>
   edges.filter(
-    (edge) =>
-      edge.source === node.id && (!branch || edge.sourceHandle === branch),
+    (edge) => edge.source === node.id && (!branch || edge.sourceHandle === branch),
   );
 
-export function wouldCreateCycle(
-  source: string,
-  target: string,
-  edges: StoredEdge[],
-) {
+export function wouldCreateCycle(source: string, target: string, edges: StoredEdge[]) {
   const stack = [target];
   const seen = new Set<string>();
   while (stack.length > 0) {

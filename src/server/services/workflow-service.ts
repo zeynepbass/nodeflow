@@ -4,10 +4,7 @@ import type {
   ExecutionRepository,
   WorkflowRepository,
 } from "@/server/repositories/types";
-import type {
-  SaveFlowInput,
-  UpdateWorkflowInput,
-} from "@/shared/contracts/workflow";
+import type { SaveFlowInput, UpdateWorkflowInput } from "@/shared/contracts/workflow";
 import type { StoredEdge, StoredNode, Workflow } from "@/shared/domain/types";
 import { createId } from "@/shared/lib/id";
 

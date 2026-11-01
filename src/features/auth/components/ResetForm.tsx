@@ -1,27 +1,23 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { passwordResetSchema, type PasswordResetInput } from "@/shared/contracts/auth";
 import { Button } from "@/shared/ui/atoms/Button";
 import { Input } from "@/shared/ui/atoms/Input";
 import { TextLink } from "@/shared/ui/atoms/TextLink";
 import { FormField } from "@/shared/ui/molecules/FormField";
 import { InlineNotice } from "@/shared/ui/molecules/InlineNotice";
-import { AuthCard } from "@/features/auth/components/AuthCard";
+import { usePasswordReset } from "../hooks/useAuth";
+import { AuthCard } from "./AuthCard";
 
 export function ResetForm() {
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState<string>();
-  const [sent, setSent] = useState(false);
-
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
-    if (!/^\S+@\S+\.\S+$/.test(email)) {
-      setError("Geçerli bir e-posta adresi gir.");
-      return;
-    }
-    setError(undefined);
-    setSent(true);
-  };
+  const reset = usePasswordReset();
+  const form = useForm<PasswordResetInput>({
+    resolver: zodResolver(passwordResetSchema),
+    defaultValues: { email: "" },
+  });
+  const { errors } = form.formState;
 
   return (
     <AuthCard
@@ -29,24 +25,27 @@ export function ResetForm() {
       description="Hesabının e-posta adresini yaz, sıfırlama adımlarını iletelim."
       footer={<TextLink href="/giris">Girişe dön</TextLink>}
     >
-      <form onSubmit={submit} noValidate className="flex flex-col gap-4">
-        {sent && (
+      <form
+        noValidate
+        className="flex flex-col gap-4"
+        onSubmit={form.handleSubmit((values) => reset.mutate(values))}
+      >
+        {reset.isSuccess && (
           <InlineNotice variant="success">
-            Bu örnek sürümde e-posta gönderilmez; gerçek sürümde sıfırlama
-            bağlantısı bu adrese iletilir.
+            Bu örnek sürümde e-posta gönderilmez; gerçek sürümde sıfırlama bağlantısı bu
+            adrese iletilir.
           </InlineNotice>
         )}
-        <FormField label="E-posta" htmlFor="email" error={error}>
+        <FormField label="E-posta" htmlFor="email" error={errors.email?.message}>
           <Input
             id="email"
             type="email"
             autoComplete="email"
-            value={email}
-            invalid={Boolean(error)}
-            onChange={(event) => setEmail(event.target.value)}
+            invalid={Boolean(errors.email)}
+            {...form.register("email")}
           />
         </FormField>
-        <Button type="submit" size="lg" className="w-full">
+        <Button type="submit" size="lg" className="w-full" loading={reset.isPending}>
           Sıfırlama Bağlantısı Gönder
         </Button>
       </form>

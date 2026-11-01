@@ -11,7 +11,13 @@ export function LogoMark({
 }) {
   return (
     <span className={cn("inline-flex items-center gap-2", className)}>
-      <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden className="shrink-0">
+      <svg
+        width={size}
+        height={size}
+        viewBox="0 0 32 32"
+        aria-hidden
+        className="shrink-0"
+      >
         <rect width="32" height="32" rx="8" fill="var(--action-primary)" />
         <circle cx="9" cy="16" r="3.5" fill="#fff" />
         <circle cx="23" cy="9" r="3.5" fill="#7FE6DF" />

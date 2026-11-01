@@ -10,9 +10,19 @@ export interface CategoryMeta {
 
 export const categories: Record<NodeCategory, CategoryMeta> = {
   start: { label: "Başlangıç", color: "var(--node-start)", hasInput: false, outputs: 1 },
-  trigger: { label: "Tetikleyici", color: "var(--node-trigger)", hasInput: true, outputs: 1 },
+  trigger: {
+    label: "Tetikleyici",
+    color: "var(--node-trigger)",
+    hasInput: true,
+    outputs: 1,
+  },
   action: { label: "İşlem", color: "var(--node-action)", hasInput: true, outputs: 1 },
-  condition: { label: "Koşul", color: "var(--node-condition)", hasInput: true, outputs: 2 },
+  condition: {
+    label: "Koşul",
+    color: "var(--node-condition)",
+    hasInput: true,
+    outputs: 2,
+  },
   data: { label: "Veri", color: "var(--node-data)", hasInput: true, outputs: 1 },
   end: { label: "Bitiş", color: "var(--node-end)", hasInput: true, outputs: 0 },
 };
@@ -189,9 +199,7 @@ export const catalog: CatalogItem[] = [
     label: "Bekle",
     description: "Akışı belirli bir süre duraklatır",
     params: { seconds: "30" },
-    fields: [
-      { key: "seconds", label: "Süre (saniye)", kind: "number", required: true },
-    ],
+    fields: [{ key: "seconds", label: "Süre (saniye)", kind: "number", required: true }],
   },
   {
     id: "condition-if",
@@ -214,7 +222,13 @@ export const catalog: CatalogItem[] = [
     params: { source: "musteriler", query: "" },
     fields: [
       { key: "source", label: "Kaynak", kind: "text", mono: true, required: true },
-      { key: "query", label: "Sorgu", kind: "textarea", mono: true, placeholder: "durum = aktif" },
+      {
+        key: "query",
+        label: "Sorgu",
+        kind: "textarea",
+        mono: true,
+        placeholder: "durum = aktif",
+      },
     ],
   },
   {
@@ -238,8 +252,7 @@ export const catalog: CatalogItem[] = [
   },
 ];
 
-export const findCatalogItem = (id: string) =>
-  catalog.find((item) => item.id === id);
+export const findCatalogItem = (id: string) => catalog.find((item) => item.id === id);
 
 const cloneParams = (params: NodeParams): NodeParams =>
   JSON.parse(JSON.stringify(params));

@@ -1,6 +1,13 @@
 "use client";
 
-import { LayoutGrid, List, Plus, SearchX, Workflow as WorkflowIcon, X } from "lucide-react";
+import {
+  LayoutGrid,
+  List,
+  Plus,
+  SearchX,
+  Workflow as WorkflowIcon,
+  X,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/shared/ui/atoms/Button";
 import { Select } from "@/shared/ui/atoms/Select";
@@ -12,7 +19,10 @@ import { WorkflowCard } from "@/features/workflows/components/WorkflowCard";
 import { WorkflowTable } from "@/features/workflows/components/WorkflowTable";
 import { showToast } from "@/shared/stores/toast";
 import { useUi } from "@/shared/stores/ui";
-import { useWorkspace } from "@/features/workflows/store/workspace";
+import { useExecutions } from "@/features/executions/hooks/useExecutions";
+import { QueryError } from "@/shared/ui/molecules/QueryError";
+import { Spinner } from "@/shared/ui/atoms/Spinner";
+import { useDeleteWorkflows, useWorkflows } from "../hooks/useWorkflows";
 import type { Workflow, WorkflowStatus } from "@/shared/domain/types";
 import { downloadWorkflows, successRate } from "@/features/workflows/lib/workflows";
 
@@ -27,9 +37,11 @@ const statusLabels: Record<WorkflowStatus, string> = {
 const normalize = (value: string) => value.toLocaleLowerCase("tr-TR");
 
 export function WorkflowsView() {
-  const workflows = useWorkspace((state) => state.workflows);
-  const executions = useWorkspace((state) => state.executions);
-  const removeWorkflows = useWorkspace((state) => state.removeWorkflows);
+  const workflowsQuery = useWorkflows();
+  const executionsQuery = useExecutions();
+  const remove = useDeleteWorkflows();
+  const workflows = useMemo(() => workflowsQuery.data ?? [], [workflowsQuery.data]);
+  const executions = useMemo(() => executionsQuery.data ?? [], [executionsQuery.data]);
   const openNew = useUi((state) => state.setNewWorkflowOpen);
 
   const [query, setQuery] = useState("");
@@ -75,15 +87,18 @@ export function WorkflowsView() {
   const deletingNames = workflows.filter((item) => pendingDelete.includes(item.id));
 
   const confirmDelete = () => {
-    removeWorkflows(pendingDelete);
-    setSelected((value) => value.filter((id) => !pendingDelete.includes(id)));
-    showToast({
-      message:
-        pendingDelete.length === 1
-          ? "Workflow silindi."
-          : `${pendingDelete.length} workflow silindi.`,
+    remove.mutate(pendingDelete, {
+      onSuccess: () => {
+        setSelected((value) => value.filter((id) => !pendingDelete.includes(id)));
+        showToast({
+          message:
+            pendingDelete.length === 1
+              ? "Workflow silindi."
+              : `${pendingDelete.length} workflow silindi.`,
+        });
+        setPendingDelete([]);
+      },
     });
-    setPendingDelete([]);
   };
 
   const chips = [
@@ -91,6 +106,16 @@ export function WorkflowsView() {
     tag !== "all" && { label: tag, clear: () => setTag("all") },
   ].filter(Boolean) as { label: string; clear: () => void }[];
 
+  if (workflowsQuery.isPending) {
+    return (
+      <div className="flex justify-center py-20 text-fg-muted">
+        <Spinner size={24} />
+      </div>
+    );
+  }
+  if (workflowsQuery.isError) {
+    return <QueryError onRetry={() => workflowsQuery.refetch()} />;
+  }
   if (workflows.length === 0) {
     return (
       <EmptyState
@@ -125,7 +150,11 @@ export function WorkflowsView() {
           >
             Dışa Aktar
           </Button>
-          <Button variant="destructive" size="sm" onClick={() => setPendingDelete(selected)}>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setPendingDelete(selected)}
+          >
             Sil
           </Button>
           <Button variant="ghost" size="sm" onClick={() => setSelected([])}>
@@ -280,7 +309,11 @@ export function WorkflowsView() {
             <Button variant="secondary" autoFocus onClick={() => setPendingDelete([])}>
               İptal
             </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
+            <Button
+              variant="destructive"
+              loading={remove.isPending}
+              onClick={confirmDelete}
+            >
               Sil
             </Button>
           </>

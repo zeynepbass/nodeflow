@@ -20,8 +20,7 @@ type AuthedHandlerContext<P> = PublicHandlerContext<P> & AuthenticatedSession;
 
 const delayMs = Number(process.env.MOCK_API_DELAY_MS ?? 200);
 
-const pause = () =>
-  new Promise((resolve) => setTimeout(resolve, delayMs));
+const pause = () => new Promise((resolve) => setTimeout(resolve, delayMs));
 
 function toResponse(error: unknown) {
   if (error instanceof AppError) {
