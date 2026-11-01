@@ -1,6 +1,7 @@
 import type {
   ConditionRule,
   FlowNodeData,
+  NodeCategory,
   StoredEdge,
   StoredNode,
 } from "@/shared/domain/types";
@@ -52,11 +53,6 @@ function compare(left: unknown, operator: ConditionRule["operator"], right: stri
   }
 }
 
-export const conditionLabel = (data: FlowNodeData) => {
-  const rule = ((data.params.rules ?? []) as ConditionRule[])[0];
-  return rule ? `${data.label}: ${stripBraces(rule.field)}` : data.label;
-};
-
 function runCondition(data: FlowNodeData, durationMs: number): NodeRun {
   const rules = (data.params.rules ?? []) as ConditionRule[];
   const results: boolean[] = [];
@@ -86,51 +82,53 @@ function runCondition(data: FlowNodeData, durationMs: number): NodeRun {
   };
 }
 
+type NodeRunner = (data: FlowNodeData, durationMs: number) => NodeRun;
+
+const runProcess: NodeRunner = (data, durationMs) => ({
+  ok: true,
+  log: `${categories[data.category].label}: "${data.label}" çalıştırıldı — ${durationMs}ms`,
+  output: { durum: "tamamlandı", girdi: mockInput.data },
+  durationMs,
+});
+
+const runners: Record<NodeCategory, NodeRunner> = {
+  start: (_, durationMs) => ({
+    ok: true,
+    log: "Başlangıç çalıştırıldı",
+    output: { baslatildi: true },
+    durationMs,
+  }),
+  trigger: (data, durationMs) => ({
+    ok: true,
+    log: `Tetikleyici: ${data.label} alındı (200 OK)`,
+    output: mockInput,
+    durationMs,
+  }),
+  action: runProcess,
+  data: runProcess,
+  condition: runCondition,
+  end: (data, durationMs) => ({
+    ok: true,
+    log: `Bitiş: "${data.label}" akışı sonlandırdı`,
+    output: { tamamlandi: true },
+    durationMs,
+  }),
+};
+
 export function runNode(data: FlowNodeData): NodeRun {
   const durationMs = 40 + Math.floor(Math.random() * 200);
-  const meta = categories[data.category];
   const errors = Object.keys(validateNode(data));
   if (errors.length > 0) {
     const error = `"${data.label}" çalıştırılamadı — ayarlarda ${errors.length} eksik veya hatalı alan var`;
     return {
       ok: false,
       error,
-      log: `${meta.label}: ${error}`,
+      log: `${categories[data.category].label}: ${error}`,
       output: { hata: error },
       durationMs,
     };
   }
-  if (data.category === "condition") return runCondition(data, durationMs);
-  if (data.category === "start") {
-    return {
-      ok: true,
-      log: "Başlangıç çalıştırıldı",
-      output: { baslatildi: true },
-      durationMs,
-    };
-  }
-  if (data.category === "trigger") {
-    return {
-      ok: true,
-      log: `Tetikleyici: ${data.label} alındı (200 OK)`,
-      output: mockInput,
-      durationMs,
-    };
-  }
-  if (data.category === "end") {
-    return {
-      ok: true,
-      log: `Bitiş: "${data.label}" akışı sonlandırdı`,
-      output: { tamamlandi: true },
-      durationMs,
-    };
-  }
-  return {
-    ok: true,
-    log: `${meta.label}: "${data.label}" çalıştırıldı — ${durationMs}ms`,
-    output: { durum: "tamamlandı", girdi: mockInput.data },
-    durationMs,
-  };
+  return runners[data.category](data, durationMs);
 }
 
 export function rootNodes(nodes: StoredNode[], edges: StoredEdge[]) {
