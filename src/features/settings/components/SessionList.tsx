@@ -19,12 +19,14 @@ export function SessionList() {
     );
   }
   return (
-    <ul className="divide-y divide-line">
+    <ul className="-my-2 divide-y divide-line">
       {data.map(({ id, device, location, current }) => {
         const Icon = /iPhone|Android/.test(device) ? Smartphone : Laptop;
         return (
           <li key={id} className="flex items-center gap-3 py-3">
-            <Icon size={20} strokeWidth={1.5} aria-hidden className="text-fg-muted" />
+            <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-lg bg-surface-hover text-fg-muted">
+              <Icon size={20} strokeWidth={1.5} aria-hidden />
+            </span>
             <div className="min-w-0 flex-1">
               <p className="font-medium">{device}</p>
               <p className="text-caption text-fg-muted">{location}</p>

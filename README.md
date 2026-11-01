@@ -30,6 +30,8 @@ Kod yazmadan, sürükle-bırak ile görsel otomasyon akışları kurmayı sağla
 | --- | --- |
 | ![Giriş](docs/ekran-goruntuleri/giris.png) | ![Çalıştırmalar](docs/ekran-goruntuleri/calistirmalar-koyu.png) |
 
+![Ayarlar](docs/ekran-goruntuleri/ayarlar.png)
+
 <img src="docs/ekran-goruntuleri/mobil-akis-listesi.png" alt="Mobil Akış Listesi Modu" width="280">
 
 ## Teknolojiler

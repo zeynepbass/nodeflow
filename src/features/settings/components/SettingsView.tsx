@@ -1,17 +1,42 @@
 "use client";
 
+import { Bell, Palette, ShieldCheck, UserRound } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/shared/lib/cn";
-import { AccountTab } from "@/features/settings/components/AccountTab";
-import { NotificationsTab } from "@/features/settings/components/NotificationsTab";
-import { ProfileTab } from "@/features/settings/components/ProfileTab";
-import { ThemeTab } from "@/features/settings/components/ThemeTab";
+import { AccountTab } from "./AccountTab";
+import { NotificationsTab } from "./NotificationsTab";
+import { ProfileTab } from "./ProfileTab";
+import { ThemeTab } from "./ThemeTab";
 
 const tabs = [
-  { id: "profile", label: "Profil", content: ProfileTab },
-  { id: "theme", label: "Tema", content: ThemeTab },
-  { id: "notifications", label: "Bildirimler", content: NotificationsTab },
-  { id: "account", label: "Hesap", content: AccountTab },
+  {
+    id: "profile",
+    label: "Profil",
+    description: "Kişisel bilgilerin",
+    icon: UserRound,
+    content: ProfileTab,
+  },
+  {
+    id: "theme",
+    label: "Tema",
+    description: "Arayüz görünümü",
+    icon: Palette,
+    content: ThemeTab,
+  },
+  {
+    id: "notifications",
+    label: "Bildirimler",
+    description: "E-posta ve uygulama içi",
+    icon: Bell,
+    content: NotificationsTab,
+  },
+  {
+    id: "account",
+    label: "Hesap",
+    description: "Güvenlik ve oturumlar",
+    icon: ShieldCheck,
+    content: AccountTab,
+  },
 ];
 
 export function SettingsView() {
@@ -20,33 +45,58 @@ export function SettingsView() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-h1">Ayarlar</h1>
-      <div className="flex flex-col gap-6 md:flex-row md:gap-10">
+      <div>
+        <h1 className="text-h1">Ayarlar</h1>
+        <p className="mt-1 text-fg-muted">
+          Profilini, görünümü, bildirimleri ve hesap güvenliğini buradan yönet.
+        </p>
+      </div>
+      <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[272px_minmax(0,1fr)] xl:gap-8">
         <div
           role="tablist"
           aria-label="Ayarlar"
-          aria-orientation="vertical"
-          className="flex shrink-0 gap-1 overflow-x-auto md:w-48 md:flex-col"
+          className="flex gap-2 overflow-x-auto rounded-xl bg-surface p-2 shadow-elevation-1 lg:sticky lg:top-24 lg:flex-col lg:gap-1"
         >
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={tab.id === active}
-              onClick={() => setActive(tab.id)}
-              className={cn(
-                "h-10 shrink-0 rounded-sm px-3 text-left font-medium transition-colors duration-100",
-                tab.id === active
-                  ? "bg-soft-primary text-on-soft-primary"
-                  : "text-fg-muted hover:bg-surface-hover hover:text-fg",
-              )}
-            >
-              {tab.label}
-            </button>
-          ))}
+          {tabs.map(({ id, label, description, icon: Icon }) => {
+            const selected = id === active;
+            return (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                onClick={() => setActive(id)}
+                className={cn(
+                  "flex min-h-11 shrink-0 items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors duration-100",
+                  selected
+                    ? "bg-soft-primary text-on-soft-primary"
+                    : "text-fg-muted hover:bg-surface-hover hover:text-fg",
+                )}
+              >
+                <span
+                  className={cn(
+                    "inline-flex size-8 shrink-0 items-center justify-center rounded-md",
+                    selected ? "bg-action text-white" : "bg-surface-hover",
+                  )}
+                >
+                  <Icon size={16} strokeWidth={1.5} aria-hidden />
+                </span>
+                <span>
+                  <span className="block font-medium">{label}</span>
+                  <span
+                    className={cn(
+                      "hidden text-caption lg:block",
+                      selected ? "text-on-soft-primary" : "text-fg-muted",
+                    )}
+                  >
+                    {description}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
         </div>
-        <div role="tabpanel" className="min-w-0 max-w-2xl flex-1">
+        <div role="tabpanel" className="flex min-w-0 max-w-3xl flex-col gap-6">
           <Content />
         </div>
       </div>
