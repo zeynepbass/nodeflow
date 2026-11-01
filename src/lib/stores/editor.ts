@@ -55,6 +55,7 @@ interface EditorState {
   commit: () => void;
   setName: (name: string) => void;
   selectNode: (id: string | null) => void;
+  clearSelection: () => void;
   setPanelTab: (tab: PanelTab) => void;
   addNode: (
     catalogId: string,
@@ -235,7 +236,21 @@ export const useEditor = create<EditorState>((set, get) => ({
   selectNode: (id) => {
     if (get().selectedNodeId === id) return;
     get().applyDraft();
-    set({ selectedNodeId: id, panelTab: "general" });
+    const node = get().nodes.find((item) => item.id === id);
+    set({
+      selectedNodeId: id,
+      panelTab: node?.data.runStatus === "error" ? "test" : "general",
+    });
+  },
+
+  clearSelection: () => {
+    get().applyDraft();
+    set((state) => ({
+      selectedNodeId: null,
+      nodes: state.nodes.map((node) =>
+        node.selected ? { ...node, selected: false } : node,
+      ),
+    }));
   },
 
   setPanelTab: (panelTab) => set({ panelTab }),
