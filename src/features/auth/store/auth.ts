@@ -31,6 +31,7 @@ async function readUsers(): Promise<StoredUser[]> {
   if (users.some((user) => user.email === DEMO_EMAIL)) return users;
   return [
     {
+      id: DEMO_EMAIL,
       name: "Deniz Kaya",
       username: "denizkaya",
       email: DEMO_EMAIL,
@@ -71,6 +72,7 @@ function readSession(): UserProfile | null {
 }
 
 const profileOf = (user: StoredUser): UserProfile => ({
+  id: user.email,
   name: user.name,
   username: user.username,
   email: user.email,
@@ -115,6 +117,7 @@ export const useAuth = create<AuthState>((set, get) => ({
     const users = await readUsers();
     if (users.some((item) => item.email === normalized)) return "exists";
     const user: StoredUser = {
+      id: normalized,
       name: name.trim(),
       username: normalized.split("@")[0],
       email: normalized,

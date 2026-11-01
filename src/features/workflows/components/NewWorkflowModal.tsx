@@ -9,7 +9,7 @@ import { Textarea } from "@/shared/ui/atoms/Textarea";
 import { FormField } from "@/shared/ui/molecules/FormField";
 import { Modal } from "@/shared/ui/molecules/Modal";
 import { Segmented } from "@/shared/ui/molecules/Segmented";
-import { templates } from "@/server/seed/demo-workspace";
+import { workflowTemplates as templates } from "@/shared/domain/templates";
 import { useAuth } from "@/features/auth/store/auth";
 import { useUi } from "@/shared/stores/ui";
 import { useWorkspace } from "@/features/workflows/store/workspace";
@@ -24,7 +24,7 @@ export function NewWorkflowModal() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [mode, setMode] = useState<"blank" | "template">("blank");
-  const [templateId, setTemplateId] = useState(templates[0].id);
+  const [templateId, setTemplateId] = useState<string>(templates[0].id);
   const [error, setError] = useState<string>();
 
   const close = () => {

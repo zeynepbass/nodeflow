@@ -4,6 +4,8 @@ export const passwordRules = [
   { label: "Bir rakam", test: (value: string) => /\d/.test(value) },
 ];
 
+export const MIN_PASSWORD_SCORE = 2;
+
 export function passwordScore(value: string) {
   return passwordRules.filter((rule) => rule.test(value)).length;
 }
