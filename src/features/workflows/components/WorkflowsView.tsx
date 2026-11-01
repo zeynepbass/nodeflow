@@ -1,5 +1,6 @@
 "use client";
 
+import { normalizeText } from "@/shared/lib/text";
 import {
   LayoutGrid,
   List,
@@ -34,8 +35,6 @@ const statusLabels: Record<WorkflowStatus, string> = {
   stopped: "Durduruldu",
 };
 
-const normalize = (value: string) => value.toLocaleLowerCase("tr-TR");
-
 export function WorkflowsView() {
   const workflowsQuery = useWorkflows();
   const executionsQuery = useExecutions();
@@ -64,7 +63,7 @@ export function WorkflowsView() {
   );
 
   const visible = useMemo(() => {
-    const term = normalize(debounced.trim());
+    const term = normalizeText(debounced.trim());
     const rate = (item: Workflow) => successRate(item.id, executions) ?? -1;
     const sorters: Record<SortKey, (a: Workflow, b: Workflow) => number> = {
       updated: (a, b) => b.updatedAt.localeCompare(a.updatedAt),
@@ -76,8 +75,8 @@ export function WorkflowsView() {
       .filter(
         (item) =>
           (!term ||
-            normalize(item.name).includes(term) ||
-            normalize(item.description).includes(term)) &&
+            normalizeText(item.name).includes(term) ||
+            normalizeText(item.description).includes(term)) &&
           (status === "all" || item.status === status) &&
           (tag === "all" || item.tags.includes(tag)),
       )

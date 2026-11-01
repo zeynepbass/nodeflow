@@ -1,5 +1,13 @@
-import type { Connection, Edge, Node } from "@xyflow/react";
+import type { Connection } from "@xyflow/react";
+import type { FlowEdge, FlowNode } from "@/features/editor/lib/flow-mapping";
 import { create } from "zustand";
+import {
+  snapPosition,
+  toFlowEdge,
+  toFlowNode,
+  toStoredEdge,
+  toStoredNode,
+} from "@/features/editor/lib/flow-mapping";
 import { createId } from "@/shared/lib/id";
 import { categories, createStoredNode } from "@/shared/domain/nodes/catalog";
 import { wouldCreateCycle } from "@/shared/domain/nodes/engine";
@@ -10,8 +18,7 @@ import type {
   Workflow,
 } from "@/shared/domain/types";
 
-export type FlowNode = Node<FlowNodeData, "flow">;
-export type FlowEdge = Edge<Record<string, never>, "flow">;
+export type { FlowEdge, FlowNode } from "@/features/editor/lib/flow-mapping";
 export type PanelTab = "general" | "params" | "test";
 export type SaveState = "saved" | "saving" | "error";
 
@@ -76,37 +83,6 @@ export type PickerTarget =
   | { kind: "edge"; edgeId: string }
   | { kind: "after"; nodeId: string; handle: string | null };
 
-const toFlowNode = (node: StoredNode, selected = false): FlowNode => ({
-  id: node.id,
-  type: "flow",
-  position: node.position,
-  data: node.data,
-  selected,
-  deletable: node.data.category !== "start",
-});
-
-const toFlowEdge = (edge: StoredEdge): FlowEdge => ({
-  id: edge.id,
-  type: "flow",
-  source: edge.source,
-  target: edge.target,
-  sourceHandle: edge.sourceHandle,
-});
-
-export const toStoredNode = (node: FlowNode): StoredNode => {
-  const data = { ...node.data };
-  delete data.runStatus;
-  delete data.runError;
-  return { id: node.id, position: node.position, data };
-};
-
-export const toStoredEdge = (edge: FlowEdge): StoredEdge => ({
-  id: edge.id,
-  source: edge.source,
-  target: edge.target,
-  sourceHandle: edge.sourceHandle,
-});
-
 const capture = (state: EditorState): Snapshot => ({
   name: state.name,
   nodes: state.nodes.map(toStoredNode),
@@ -117,24 +93,6 @@ const pushPast = (state: EditorState) => ({
   past: [...state.past, capture(state)].slice(-50),
   future: [],
 });
-
-function snapPosition(position: { x: number; y: number }, nodes: FlowNode[]) {
-  const candidates = nodes.filter((node) => {
-    const outputs = categories[node.data.category].outputs;
-    const dx = position.x - node.position.x;
-    return outputs > 0 && dx > 120 && dx < 480;
-  });
-  const nearest = candidates
-    .map((node) => ({
-      node,
-      distance: Math.hypot(position.x - node.position.x, position.y - node.position.y),
-    }))
-    .sort((a, b) => a.distance - b.distance)[0];
-  if (!nearest || Math.abs(position.y - nearest.node.position.y) > 120) {
-    return position;
-  }
-  return { x: position.x, y: nearest.node.position.y };
-}
 
 const handleOf = (data: FlowNodeData) => (data.category === "condition" ? "yes" : null);
 
