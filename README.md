@@ -69,7 +69,7 @@ Uygulama `http://localhost:3000` adresinde açılır.
 
 Örnek hesap hazır workflow ve çalıştırma kayıtlarıyla gelir. Yeni kayıt olan kullanıcı boş çalışma alanıyla başlar.
 
-Mock API yanıt gecikmesi `MOCK_API_DELAY_MS` ortam değişkeniyle ayarlanır (varsayılan: 200 ms).
+Mock API yanıt gecikmesi `MOCK_API_DELAY_MS` ortam değişkeniyle ayarlanır (geliştirmede 200 ms, üretimde 0 ms).
 
 ## Komutlar
 
@@ -167,6 +167,13 @@ Oturum, `httpOnly` çerezle taşınır. Şifreler `scrypt` ile özetlenir ve her
 | `/api/activities` | `GET` | Aktivite akışı |
 | `/api/preferences` | `GET`, `PATCH` | Bildirim ve güvenlik tercihleri |
 
+## Performans
+
+- Dashboard, liste ve editör verisi sunucuda ön yüklenir; sayfa veri beklemeden açılır.
+- React Flow, komut paleti ve form kütüphaneleri yalnızca gerektiğinde yüklenir. Mobil editör React Flow indirmez.
+- Kritik CSS sayfaya gömülür ve tema, ilk boyamadan önce uygulanır.
+- Canvas yalnızca görünür node'ları çizer.
+
 ## Sayfalar
 
 | Yol | Ekran |
@@ -196,3 +203,7 @@ Oturum, `httpOnly` çerezle taşınır. Şifreler `scrypt` ile özetlenir ve her
 - Veriler bellektedir; sunucu yeniden başlayınca kayıtlar ve oturumlar sıfırlanır. Sunucusuz ortamlarda örnekler arasında veri paylaşılmaz.
 - Webhook, zamanlayıcı, e-posta ve HTTP işlemleri gerçekten çalışmaz; çalıştırmalar örnek girdiyle simüle edilir.
 - Google ile giriş, fotoğraf yükleme ve şifre sıfırlama e-postası örnek olarak yer alır.
+
+## Lisans
+
+Lisans koşulları için [LICENSE](LICENSE) dosyasına bakın.
