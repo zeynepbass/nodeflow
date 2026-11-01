@@ -70,8 +70,12 @@ function readSession(): UserProfile | null {
   }
 }
 
-const profileOf = ({ passwordHash: _, ...profile }: StoredUser): UserProfile =>
-  profile;
+const profileOf = (user: StoredUser): UserProfile => ({
+  name: user.name,
+  username: user.username,
+  email: user.email,
+  timezone: user.timezone,
+});
 
 interface AuthState {
   ready: boolean;
