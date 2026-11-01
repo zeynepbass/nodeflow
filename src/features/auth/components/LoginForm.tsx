@@ -21,7 +21,7 @@ export function LoginForm() {
   const login = useLogin();
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "", remember: true },
+    defaultValues: { email: DEMO_EMAIL, password: DEMO_PASSWORD, remember: true },
   });
   const { errors } = form.formState;
   const busy = login.isPending || login.isSuccess;
@@ -80,10 +80,6 @@ export function LoginForm() {
         </Button>
         <Divider label="veya" />
         <GoogleButton label="Google ile giriş yap" />
-        <InlineNotice>
-          Örnek hesap: <span className="font-mono text-code">{DEMO_EMAIL}</span> ·{" "}
-          <span className="font-mono text-code">{DEMO_PASSWORD}</span>
-        </InlineNotice>
       </form>
     </AuthCard>
   );

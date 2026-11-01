@@ -67,7 +67,7 @@ Uygulama `http://localhost:3000` adresinde açılır.
 | --- | --- |
 | `demo@nodeflow.dev` | `NodeFlow123` |
 
-Örnek hesap hazır workflow ve çalıştırma kayıtlarıyla gelir. Yeni kayıt olan kullanıcı boş çalışma alanıyla başlar.
+Giriş formu örnek hesapla dolu açılır. Örnek hesap hazır workflow ve çalıştırma kayıtlarıyla gelir. Yeni kayıt olan kullanıcı boş çalışma alanıyla başlar.
 
 Mock API yanıt gecikmesi `MOCK_API_DELAY_MS` ortam değişkeniyle ayarlanır (geliştirmede 200 ms, üretimde 0 ms).
 
