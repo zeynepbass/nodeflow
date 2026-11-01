@@ -2,7 +2,7 @@
 
 import { ArrowLeft, Check, CornerDownRight, Play, Plus, X } from "lucide-react";
 import Link from "next/link";
-import { Fragment } from "react";
+import { useMemo } from "react";
 import { IconButton } from "@/components/atoms/IconButton";
 import { Spinner } from "@/components/atoms/Spinner";
 import { InlineNotice } from "@/components/molecules/InlineNotice";
@@ -11,7 +11,7 @@ import { cn } from "@/lib/cn";
 import { categories } from "@/lib/nodes/catalog";
 import { timeAgo } from "@/lib/format";
 import { hasErrors } from "@/lib/nodes/validation";
-import { useEditor, type FlowNode } from "@/lib/stores/editor";
+import { useEditor, type FlowEdge, type FlowNode } from "@/lib/stores/editor";
 import { useWorkspace } from "@/lib/stores/workspace";
 import { CategoryIcon } from "./CategoryIcon";
 import { EditableName } from "./EditorToolbar";
@@ -83,62 +83,88 @@ function AddBar({ nodeId, handle }: { nodeId: string; handle: string | null }) {
   );
 }
 
-function Chain({
-  nodeId,
-  visited,
-  lastRunAt,
-}: {
-  nodeId: string;
-  visited: Set<string>;
-  lastRunAt?: string;
-}) {
-  const nodes = useEditor((state) => state.nodes);
-  const edges = useEditor((state) => state.edges);
-  const node = nodes.find((item) => item.id === nodeId);
-  if (!node) return null;
+type OutlineItem =
+  | { kind: "ref"; id: string; label: string }
+  | {
+      kind: "node";
+      id: string;
+      node: FlowNode;
+      next: OutlineItem[];
+      branches: { handle: "yes" | "no"; items: OutlineItem[] }[] | null;
+    };
 
-  if (visited.has(nodeId)) {
+function buildOutline(nodes: FlowNode[], edges: FlowEdge[]) {
+  const seen = new Set<string>();
+
+  const visit = (id: string): OutlineItem | null => {
+    const node = nodes.find((item) => item.id === id);
+    if (!node) return null;
+    if (seen.has(id)) return { kind: "ref", id, label: node.data.label };
+    seen.add(id);
+    const outgoing = edges.filter((edge) => edge.source === id);
+    const follow = (targets: FlowEdge[]) =>
+      targets
+        .map((edge) => visit(edge.target))
+        .filter((item): item is OutlineItem => item !== null);
+    if (node.data.category === "condition") {
+      const handles = ["yes", "no"] as const;
+      return {
+        kind: "node",
+        id,
+        node,
+        next: [],
+        branches: handles.map((handle) => ({
+          handle,
+          items: follow(outgoing.filter((edge) => edge.sourceHandle === handle)),
+        })),
+      };
+    }
+    return { kind: "node", id, node, next: follow(outgoing), branches: null };
+  };
+
+  const targets = new Set(edges.map((edge) => edge.target));
+  const start = nodes.find((node) => node.data.category === "start");
+  const main = start ? visit(start.id) : null;
+  const loose = nodes
+    .filter((node) => !seen.has(node.id) && !targets.has(node.id))
+    .map((node) => visit(node.id))
+    .filter((item): item is OutlineItem => item !== null);
+  return { main, loose };
+}
+
+function Chain({ item, lastRunAt }: { item: OutlineItem; lastRunAt?: string }) {
+  if (item.kind === "ref") {
     return (
       <p className="flex items-center gap-2 py-2 text-caption text-fg-muted">
         <CornerDownRight size={14} strokeWidth={1.5} aria-hidden />
-        {node.data.label} adımına bağlanır
+        {item.label} adımına bağlanır
       </p>
     );
   }
-  visited.add(nodeId);
 
-  const outgoing = edges.filter((edge) => edge.source === nodeId);
-  const meta = categories[node.data.category];
+  const { node, next, branches } = item;
 
-  if (node.data.category === "condition") {
+  if (branches) {
     return (
       <>
         <NodeRow node={node} lastRunAt={lastRunAt} />
         <div className="ml-3 border-l border-line pl-3 pt-2">
-          {(["yes", "no"] as const).map((handle) => {
-            const branch = outgoing.filter((edge) => edge.sourceHandle === handle);
-            return (
-              <div key={handle} className="mb-2">
-                <p
-                  className={cn(
-                    "text-caption font-medium",
-                    handle === "yes" ? "text-on-soft-success" : "text-on-soft-error",
-                  )}
-                >
-                  {handle === "yes" ? "Evet" : "Hayır"}
-                </p>
-                <AddBar nodeId={nodeId} handle={handle} />
-                {branch.map((edge) => (
-                  <Chain
-                    key={edge.id}
-                    nodeId={edge.target}
-                    visited={visited}
-                    lastRunAt={lastRunAt}
-                  />
-                ))}
-              </div>
-            );
-          })}
+          {branches.map(({ handle, items }) => (
+            <div key={handle} className="mb-2">
+              <p
+                className={cn(
+                  "text-caption font-medium",
+                  handle === "yes" ? "text-on-soft-success" : "text-on-soft-error",
+                )}
+              >
+                {handle === "yes" ? "Evet" : "Hayır"}
+              </p>
+              <AddBar nodeId={node.id} handle={handle} />
+              {items.map((child) => (
+                <Chain key={child.id} item={child} lastRunAt={lastRunAt} />
+              ))}
+            </div>
+          ))}
         </div>
       </>
     );
@@ -147,11 +173,11 @@ function Chain({
   return (
     <>
       <NodeRow node={node} lastRunAt={lastRunAt} />
-      {meta.outputs > 0 && <AddBar nodeId={nodeId} handle={null} />}
-      {outgoing.map((edge) => (
-        <Fragment key={edge.id}>
-          <Chain nodeId={edge.target} visited={visited} lastRunAt={lastRunAt} />
-        </Fragment>
+      {categories[node.data.category].outputs > 0 && (
+        <AddBar nodeId={node.id} handle={null} />
+      )}
+      {next.map((child) => (
+        <Chain key={child.id} item={child} lastRunAt={lastRunAt} />
       ))}
     </>
   );
@@ -171,12 +197,7 @@ export function MobileEditor({ onRetrySave }: { onRetrySave: () => void }) {
     state.nodes.find((node) => node.id === state.selectedNodeId),
   );
 
-  const visited = new Set<string>();
-  const targets = new Set(edges.map((edge) => edge.target));
-  const start = nodes.find((node) => node.data.category === "start");
-  const roots = nodes.filter(
-    (node) => node.id !== start?.id && !targets.has(node.id),
-  );
+  const { main, loose } = useMemo(() => buildOutline(nodes, edges), [nodes, edges]);
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -208,15 +229,15 @@ export function MobileEditor({ onRetrySave }: { onRetrySave: () => void }) {
       </header>
 
       <main data-testid="akis-listesi" className="flex-1 p-4">
-        {start && <Chain nodeId={start.id} visited={visited} lastRunAt={lastRunAt} />}
-        {roots.length > 0 && (
+        {main && <Chain item={main} lastRunAt={lastRunAt} />}
+        {loose.length > 0 && (
           <section className="mt-6">
             <h2 className="mb-2 text-caption font-medium text-fg-muted">
               Bağlantısız node&apos;lar
             </h2>
             <div className="flex flex-col gap-2">
-              {roots.map((node) => (
-                <Chain key={node.id} nodeId={node.id} visited={visited} lastRunAt={lastRunAt} />
+              {loose.map((item) => (
+                <Chain key={item.id} item={item} lastRunAt={lastRunAt} />
               ))}
             </div>
           </section>

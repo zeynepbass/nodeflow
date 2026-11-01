@@ -33,7 +33,7 @@ export function nodeSummary(data: FlowNodeData) {
     case "condition-if": {
       const rule = ((params.rules ?? []) as ConditionRule[])[0];
       if (!rule) return "Koşul tanımlı değil";
-      return `Eğer ${rule.field} ${rule.value} ${operators[rule.operator].label}`;
+      return `Eğer ${rule.field} ${operators[rule.operator].phrase} ${rule.value}`;
     }
     case "data-read":
       return `${params.source} okunur`;
