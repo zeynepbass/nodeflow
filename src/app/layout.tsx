@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Inter } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 import { Providers } from "@/app/Providers";
 import { themeScript } from "@/features/theme/lib/theme";
@@ -11,10 +11,10 @@ const inter = Inter({
   display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetBrainsMono = JetBrains_Mono({
+  variable: "--font-code",
   subsets: ["latin", "latin-ext"],
-  display: "optional",
+  display: "swap",
   preload: false,
 });
 
@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="tr"
-      className={`${inter.variable} ${geistMono.variable}`}
+      className={`${inter.variable} ${jetBrainsMono.variable}`}
       suppressHydrationWarning
     >
       <head>
