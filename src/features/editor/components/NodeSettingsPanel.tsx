@@ -34,8 +34,7 @@ function TestTab({ data }: { data: FlowNodeData }) {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-fg-muted">
-        Node örnek bir girdiyle tek başına çalıştırılır; akışın geri kalanı
-        etkilenmez.
+        Node örnek bir girdiyle tek başına çalıştırılır; akışın geri kalanı etkilenmez.
       </p>
       <Button variant="secondary" onClick={() => setResult(runNode(data))}>
         <Play size={16} strokeWidth={1.5} aria-hidden />
@@ -107,7 +106,11 @@ export function NodeSettingsPanel({
         )}
       </header>
 
-      <div role="tablist" aria-label="Node ayarları" className="flex border-b border-line px-3">
+      <div
+        role="tablist"
+        aria-label="Node ayarları"
+        className="flex border-b border-line px-3"
+      >
         {tabs.map((item) => (
           <button
             key={item.id}
@@ -146,9 +149,7 @@ export function NodeSettingsPanel({
               <Textarea
                 id="node-aciklama"
                 value={data.description}
-                onChange={(event) =>
-                  update(node.id, { description: event.target.value })
-                }
+                onChange={(event) => update(node.id, { description: event.target.value })}
               />
             </FormField>
             <div className="flex items-center justify-between gap-3">

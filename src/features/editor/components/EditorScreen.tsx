@@ -3,14 +3,17 @@
 import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import { SearchX } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { buttonClass } from "@/shared/ui/atoms/Button";
 import { EmptyState } from "@/shared/ui/molecules/EmptyState";
-import { AuthGate } from "@/widgets/app-shell/AppShell";
 import { useMediaQuery } from "@/shared/hooks/useMediaQuery";
 import { useEditor } from "@/features/editor/store/editor";
 import { showToast } from "@/shared/stores/toast";
-import { useWorkspace } from "@/features/workflows/store/workspace";
+import { useWorkflow } from "@/features/workflows/hooks/useWorkflows";
+import { ApiError } from "@/shared/api/http-client";
+import { Spinner } from "@/shared/ui/atoms/Spinner";
+import { QueryError } from "@/shared/ui/molecules/QueryError";
+import { useAutosave } from "@/features/editor/hooks/useAutosave";
 import { Canvas } from "@/features/editor/components/Canvas";
 import { EditorToolbar } from "@/features/editor/components/EditorToolbar";
 import { MobileEditor } from "@/features/editor/components/MobileEditor";
@@ -20,41 +23,7 @@ import { RightPanel } from "@/features/editor/components/RightPanel";
 import { ScheduleModal } from "@/features/editor/components/ScheduleModal";
 import { useRunner } from "@/features/editor/hooks/useRunner";
 
-function useAutosave() {
-  const revision = useEditor((state) => state.revision);
-
-  const save = useCallback(() => {
-    const { flush, setSaveState } = useEditor.getState();
-    try {
-      flush();
-      setSaveState("saved");
-    } catch {
-      setSaveState("error");
-    }
-  }, []);
-
-  useEffect(() => {
-    if (revision === 0) return;
-    useEditor.getState().setSaveState("saving");
-    const timer = window.setTimeout(save, 500);
-    return () => window.clearTimeout(timer);
-  }, [revision, save]);
-
-  useEffect(
-    () => () => {
-      const { applyDraft, saveState } = useEditor.getState();
-      applyDraft();
-      if (saveState === "saving" || useEditor.getState().saveState === "saving") {
-        useEditor.getState().flush();
-      }
-    },
-    [],
-  );
-
-  return save;
-}
-
-function useEditorShortcuts(save: () => void) {
+function useEditorShortcuts(save: () => Promise<void>) {
   const flow = useReactFlow();
 
   useEffect(() => {
@@ -65,8 +34,7 @@ function useEditorShortcuts(save: () => void) {
       if (key === "s") {
         event.preventDefault();
         editor.applyDraft();
-        save();
-        showToast({ message: "Workflow kaydedildi." });
+        save().then(() => showToast({ message: "Workflow kaydedildi." }));
         return;
       }
       const target = event.target as HTMLElement;
@@ -79,7 +47,10 @@ function useEditorShortcuts(save: () => void) {
       if (key === "d") {
         event.preventDefault();
         editor.duplicateNodes(
-          flow.getNodes().filter((node) => node.selected).map((node) => node.id),
+          flow
+            .getNodes()
+            .filter((node) => node.selected)
+            .map((node) => node.id),
         );
       }
     };
@@ -88,10 +59,10 @@ function useEditorShortcuts(save: () => void) {
   }, [flow, save]);
 }
 
-function DesktopEditor({ save }: { save: () => void }) {
+function DesktopEditor({ save }: { save: () => Promise<void> }) {
   useEditorShortcuts(save);
   const isTablet = useMediaQuery("(max-width: 1023px)");
-  const run = useRunner();
+  const run = useRunner(save);
   const selectedNodeId = useEditor((state) => state.selectedNodeId);
   const [libraryCollapsed, setLibraryCollapsed] = useState(false);
   const [libraryOverlay, setLibraryOverlay] = useState(false);
@@ -164,9 +135,7 @@ function EditorBody() {
 }
 
 function EditorContent({ id }: { id: string }) {
-  const workflow = useWorkspace((state) =>
-    state.workflows.find((item) => item.id === id),
-  );
+  const { data: workflow, isPending, error, refetch } = useWorkflow(id);
   const loadedId = useEditor((state) => state.workflowId);
   const load = useEditor((state) => state.load);
   const loadedOnce = useRef(false);
@@ -178,7 +147,7 @@ function EditorContent({ id }: { id: string }) {
     }
   }, [load, workflow]);
 
-  if (!workflow) {
+  if (error instanceof ApiError && error.status === 404) {
     return (
       <EmptyState
         icon={SearchX}
@@ -192,15 +161,18 @@ function EditorContent({ id }: { id: string }) {
       />
     );
   }
-  if (loadedId !== id) return null;
+  if (error) return <QueryError onRetry={() => refetch()} />;
+  if (isPending || loadedId !== id) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center text-fg-muted">
+        <Spinner size={24} />
+      </div>
+    );
+  }
 
   return <EditorBody />;
 }
 
 export function EditorScreen({ id }: { id: string }) {
-  return (
-    <AuthGate>
-      <EditorContent id={id} />
-    </AuthGate>
-  );
+  return <EditorContent key={id} id={id} />;
 }

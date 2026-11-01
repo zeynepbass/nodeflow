@@ -24,7 +24,11 @@ export function InlineNotice({
   return (
     <div
       aria-live="polite"
-      className={cn("flex items-start gap-2 rounded-sm px-3 py-2 text-body", tone, className)}
+      className={cn(
+        "flex items-start gap-2 rounded-sm px-3 py-2 text-body",
+        tone,
+        className,
+      )}
     >
       <Icon size={16} strokeWidth={1.5} aria-hidden className="mt-0.5 shrink-0" />
       <div>{children}</div>

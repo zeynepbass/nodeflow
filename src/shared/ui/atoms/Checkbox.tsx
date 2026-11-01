@@ -1,14 +1,18 @@
-import type { InputHTMLAttributes, ReactNode } from "react";
+import { forwardRef, type InputHTMLAttributes, type ReactNode } from "react";
 import { cn } from "@/shared/lib/cn";
 
 interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "type"> {
   label?: ReactNode;
 }
 
-export function Checkbox({ label, className, ...props }: CheckboxProps) {
+export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(function Checkbox(
+  { label, className, ...props },
+  ref,
+) {
   return (
     <label className={cn("inline-flex items-start gap-2 text-body", className)}>
       <input
+        ref={ref}
         type="checkbox"
         className="mt-0.5 size-4 shrink-0 rounded-xs accent-[var(--action-primary)]"
         {...props}
@@ -16,4 +20,4 @@ export function Checkbox({ label, className, ...props }: CheckboxProps) {
       {label && <span>{label}</span>}
     </label>
   );
-}
+});

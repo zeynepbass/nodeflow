@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { MIN_PASSWORD_SCORE, passwordRules, passwordScore } from "@/shared/domain/password";
+import {
+  MIN_PASSWORD_SCORE,
+  passwordRules,
+  passwordScore,
+} from "@/shared/domain/password";
 
 const required = z.string().trim().min(1, "Bu alan zorunlu");
 
@@ -22,7 +26,10 @@ export const registerSchema = z.object({
   password: z
     .string()
     .min(1, "Bu alan zorunlu")
-    .refine((value) => passwordScore(value) >= MIN_PASSWORD_SCORE, "Daha güçlü bir şifre seç."),
+    .refine(
+      (value) => passwordScore(value) >= MIN_PASSWORD_SCORE,
+      "Daha güçlü bir şifre seç.",
+    ),
 });
 
 export const passwordResetSchema = z.object({ email });
@@ -38,7 +45,10 @@ export const changePasswordSchema = z
     current: z.string().min(1, "Bu alan zorunlu"),
     next: z
       .string()
-      .refine((value) => passwordScore(value) === passwordRules.length, "Şifre kurallarını karşılamıyor."),
+      .refine(
+        (value) => passwordScore(value) === passwordRules.length,
+        "Şifre kurallarını karşılamıyor.",
+      ),
     repeat: z.string(),
   })
   .refine((value) => value.next === value.repeat, {

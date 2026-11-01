@@ -15,7 +15,10 @@ import { IconButton } from "@/shared/ui/atoms/IconButton";
 import { useMediaQuery } from "@/shared/hooks/useMediaQuery";
 import { categories } from "@/shared/domain/nodes/catalog";
 import { useEditor, type FlowEdge, type FlowNode } from "@/features/editor/store/editor";
-import { FlowConnectionLine, FlowEdgeLine } from "@/features/editor/components/FlowEdgeLine";
+import {
+  FlowConnectionLine,
+  FlowEdgeLine,
+} from "@/features/editor/components/FlowEdgeLine";
 import { FlowNodeCard } from "@/features/editor/components/FlowNodeCard";
 import { DRAG_TYPE } from "@/features/editor/components/NodeLibrary";
 

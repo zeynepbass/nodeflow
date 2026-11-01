@@ -417,7 +417,9 @@
 
 .dugum[data-selected="true"] {
   --cerceve: var(--kategori);
-  box-shadow: var(--elevation-2), 0 0 0 3px color-mix(in srgb, var(--kategori) 16%, transparent);
+  box-shadow:
+    var(--elevation-2),
+    0 0 0 3px color-mix(in srgb, var(--kategori) 16%, transparent);
 }
 
 .dugum[data-run="running"] {
@@ -443,7 +445,9 @@
 }
 
 .kenar-iz {
-  transition: stroke-width 100ms ease-out, stroke-opacity 100ms ease-out;
+  transition:
+    stroke-width 100ms ease-out,
+    stroke-opacity 100ms ease-out;
 }
 
 @media (pointer: coarse) {

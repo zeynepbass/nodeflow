@@ -1,22 +1,26 @@
 "use client";
 
-import { useEffect, type ReactNode } from "react";
-import { ToastHost } from "@/shared/ui/molecules/ToastHost";
-import { useAuth } from "@/features/auth/store/auth";
-import { usePreferences } from "@/features/settings/store/preferences";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, type ReactNode } from "react";
 import { useTheme } from "@/features/theme/store/theme";
-import { useWorkspace } from "@/features/workflows/store/workspace";
 import { applyTheme } from "@/features/theme/lib/theme";
+import { createQueryClient } from "@/shared/api/query-client";
+import { ToastHost } from "@/shared/ui/molecules/ToastHost";
 
 export function Providers({ children }: { children: ReactNode }) {
+  const router = useRouter();
+  const [queryClient] = useState(() =>
+    createQueryClient(() => {
+      router.push("/giris");
+      router.refresh();
+    }),
+  );
   const preference = useTheme((state) => state.preference);
 
   useEffect(() => {
     useTheme.getState().hydrate();
-    usePreferences.persist.rehydrate();
-    Promise.resolve(useWorkspace.persist.rehydrate()).then(() =>
-      useAuth.getState().hydrate(),
-    );
   }, []);
 
   useEffect(() => {
@@ -28,9 +32,10 @@ export function Providers({ children }: { children: ReactNode }) {
   }, [preference]);
 
   return (
-    <>
+    <QueryClientProvider client={queryClient}>
       {children}
       <ToastHost />
-    </>
+      <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
+    </QueryClientProvider>
   );
 }

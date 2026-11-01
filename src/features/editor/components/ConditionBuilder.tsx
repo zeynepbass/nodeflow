@@ -9,7 +9,11 @@ import { FieldError } from "@/shared/ui/molecules/FormField";
 import { Segmented } from "@/shared/ui/molecules/Segmented";
 import { createId } from "@/shared/lib/id";
 import { mockInput } from "@/shared/domain/nodes/engine";
-import type { ConditionOperator, ConditionRule, FlowNodeData } from "@/shared/domain/types";
+import type {
+  ConditionOperator,
+  ConditionRule,
+  FlowNodeData,
+} from "@/shared/domain/types";
 import { operators } from "@/features/editor/lib/summary";
 
 const fieldOptions = [
@@ -30,8 +34,7 @@ export function ConditionBuilder({
   const rules = (data.params.rules ?? []) as ConditionRule[];
   const join = data.params.join === "or" ? "or" : "and";
 
-  const setRules = (next: ConditionRule[]) =>
-    onChange({ ...data.params, rules: next });
+  const setRules = (next: ConditionRule[]) => onChange({ ...data.params, rules: next });
   const patchRule = (id: string, patch: Partial<ConditionRule>) =>
     setRules(rules.map((rule) => (rule.id === id ? { ...rule, ...patch } : rule)));
 
@@ -50,7 +53,10 @@ export function ConditionBuilder({
         />
       )}
       {rules.map((rule) => (
-        <div key={rule.id} className="flex flex-col gap-2 rounded-md border border-line p-3">
+        <div
+          key={rule.id}
+          className="flex flex-col gap-2 rounded-md border border-line p-3"
+        >
           <Select
             aria-label="Alan"
             value={rule.field}

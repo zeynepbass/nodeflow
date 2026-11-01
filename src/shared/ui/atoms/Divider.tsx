@@ -10,9 +10,7 @@ export function Divider({
   className?: string;
 }) {
   if (vertical) {
-    return (
-      <span aria-hidden className={cn("mx-1 h-6 w-px bg-line", className)} />
-    );
+    return <span aria-hidden className={cn("mx-1 h-6 w-px bg-line", className)} />;
   }
   if (!label) return <hr className={cn("border-line", className)} />;
   return (

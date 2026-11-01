@@ -7,12 +7,12 @@ import { Avatar } from "@/shared/ui/atoms/Avatar";
 import { IconButton } from "@/shared/ui/atoms/IconButton";
 import { ThemeSwitcher } from "@/features/theme/components/ThemeSwitcher";
 import { navigation } from "@/widgets/app-shell/navigation";
-import { useAuth } from "@/features/auth/store/auth";
+import { useCurrentUser } from "@/features/auth/hooks/useAuth";
 import { useUi } from "@/shared/stores/ui";
 
 export function TopBar() {
   const pathname = usePathname();
-  const user = useAuth((state) => state.user);
+  const user = useCurrentUser();
   const setPaletteOpen = useUi((state) => state.setPaletteOpen);
   const setDrawerOpen = useUi((state) => state.setDrawerOpen);
   const current = navigation.find((item) => pathname.startsWith(item.href));
@@ -32,14 +32,21 @@ export function TopBar() {
         {current && (
           <Link
             href={current.href}
-            className={isDetail ? "truncate text-fg-muted hover:text-fg" : "truncate font-medium"}
+            className={
+              isDetail ? "truncate text-fg-muted hover:text-fg" : "truncate font-medium"
+            }
           >
             {current.label}
           </Link>
         )}
         {isDetail && (
           <>
-            <ChevronRight size={16} strokeWidth={1.5} aria-hidden className="shrink-0 text-fg-muted" />
+            <ChevronRight
+              size={16}
+              strokeWidth={1.5}
+              aria-hidden
+              className="shrink-0 text-fg-muted"
+            />
             <span className="truncate font-medium">Detay</span>
           </>
         )}
@@ -62,11 +69,13 @@ export function TopBar() {
         <Search size={20} strokeWidth={1.5} aria-hidden />
       </IconButton>
       <ThemeSwitcher />
-      {user && (
-        <Link href="/ayarlar" aria-label="Profil ayarları" className="hidden rounded-full md:block">
-          <Avatar name={user.name} />
-        </Link>
-      )}
+      <Link
+        href="/ayarlar"
+        aria-label="Profil ayarları"
+        className="hidden rounded-full md:block"
+      >
+        <Avatar name={user.name} />
+      </Link>
     </header>
   );
 }

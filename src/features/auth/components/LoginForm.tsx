@@ -1,51 +1,30 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Check } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useForm } from "react-hook-form";
+import { loginSchema, type LoginInput } from "@/shared/contracts/auth";
+import { DEMO_EMAIL, DEMO_PASSWORD } from "@/shared/domain/demo";
 import { Button } from "@/shared/ui/atoms/Button";
 import { Checkbox } from "@/shared/ui/atoms/Checkbox";
 import { Divider } from "@/shared/ui/atoms/Divider";
 import { Input } from "@/shared/ui/atoms/Input";
 import { TextLink } from "@/shared/ui/atoms/TextLink";
 import { FormField } from "@/shared/ui/molecules/FormField";
-import { GoogleButton } from "@/features/auth/components/GoogleButton";
 import { InlineNotice } from "@/shared/ui/molecules/InlineNotice";
 import { PasswordInput } from "@/shared/ui/molecules/PasswordInput";
-import { AuthCard } from "@/features/auth/components/AuthCard";
-import { DEMO_EMAIL, DEMO_PASSWORD, useAuth } from "@/features/auth/store/auth";
+import { useLogin } from "../hooks/useAuth";
+import { AuthCard } from "./AuthCard";
+import { GoogleButton } from "./GoogleButton";
 
 export function LoginForm() {
-  const router = useRouter();
-  const login = useAuth((state) => state.login);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(true);
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
-  const [failed, setFailed] = useState(false);
-  const [status, setStatus] = useState<"idle" | "loading" | "done">("idle");
-
-  const submit = async (event: FormEvent) => {
-    event.preventDefault();
-    const next = {
-      email: email.trim() ? undefined : "Bu alan zorunlu",
-      password: password ? undefined : "Bu alan zorunlu",
-    };
-    setErrors(next);
-    setFailed(false);
-    if (next.email || next.password) return;
-    setStatus("loading");
-    const ok = await login(email, password, remember);
-    if (!ok) {
-      setFailed(true);
-      setStatus("idle");
-      return;
-    }
-    setStatus("done");
-    window.setTimeout(() => router.push("/panel"), 300);
-  };
-
-  const busy = status !== "idle";
+  const login = useLogin();
+  const form = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "", remember: true },
+  });
+  const { errors } = form.formState;
+  const busy = login.isPending || login.isSuccess;
 
   return (
     <AuthCard
@@ -57,48 +36,41 @@ export function LoginForm() {
         </>
       }
     >
-      <form onSubmit={submit} noValidate className="flex flex-col gap-4">
-        {failed && (
-          <InlineNotice variant="error">E-posta veya şifre hatalı.</InlineNotice>
+      <form
+        onSubmit={form.handleSubmit((values) => login.mutate(values))}
+        noValidate
+        className="flex flex-col gap-4"
+      >
+        {login.isError && (
+          <InlineNotice variant="error">{login.error.message}</InlineNotice>
         )}
-        <FormField label="E-posta" htmlFor="email" error={errors.email}>
+        <FormField label="E-posta" htmlFor="email" error={errors.email?.message}>
           <Input
             id="email"
             type="email"
             autoComplete="email"
-            value={email}
-            disabled={busy}
+            readOnly={busy}
             invalid={Boolean(errors.email)}
-            onChange={(event) => setEmail(event.target.value)}
+            {...form.register("email")}
           />
         </FormField>
-        <FormField label="Şifre" htmlFor="password" error={errors.password}>
+        <FormField label="Şifre" htmlFor="password" error={errors.password?.message}>
           <PasswordInput
             id="password"
             autoComplete="current-password"
-            value={password}
-            disabled={busy}
+            readOnly={busy}
             invalid={Boolean(errors.password)}
-            onChange={(event) => setPassword(event.target.value)}
+            {...form.register("password")}
           />
         </FormField>
         <div className="flex items-center justify-between">
-          <Checkbox
-            label="Beni hatırla"
-            checked={remember}
-            onChange={(event) => setRemember(event.target.checked)}
-          />
+          <Checkbox label="Beni hatırla" {...form.register("remember")} />
           <TextLink href="/sifre-sifirlama" className="text-body">
             Şifremi unuttum
           </TextLink>
         </div>
-        <Button
-          type="submit"
-          size="lg"
-          className="w-full"
-          loading={status === "loading"}
-        >
-          {status === "done" ? (
+        <Button type="submit" size="lg" className="w-full" loading={login.isPending}>
+          {login.isSuccess ? (
             <>
               <Check size={16} strokeWidth={2} aria-hidden /> Giriş yapıldı
             </>
@@ -109,8 +81,8 @@ export function LoginForm() {
         <Divider label="veya" />
         <GoogleButton label="Google ile giriş yap" />
         <InlineNotice>
-          Örnek hesap: <span className="font-mono text-code">{DEMO_EMAIL}</span>{" "}
-          · <span className="font-mono text-code">{DEMO_PASSWORD}</span>
+          Örnek hesap: <span className="font-mono text-code">{DEMO_EMAIL}</span> ·{" "}
+          <span className="font-mono text-code">{DEMO_PASSWORD}</span>
         </InlineNotice>
       </form>
     </AuthCard>

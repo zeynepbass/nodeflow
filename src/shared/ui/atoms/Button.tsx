@@ -6,8 +6,7 @@ export type ButtonVariant = "primary" | "secondary" | "ghost" | "destructive";
 export type ButtonSize = "sm" | "md" | "lg";
 
 const variants: Record<ButtonVariant, string> = {
-  primary:
-    "bg-action text-white hover:bg-action-hover active:bg-action-active",
+  primary: "bg-action text-white hover:bg-action-hover active:bg-action-active",
   secondary:
     "bg-surface text-fg border border-line hover:bg-surface-hover active:bg-line",
   ghost:
@@ -65,12 +64,7 @@ export function Button({
           <Spinner size={16} />
         </span>
       )}
-      <span
-        className={cn(
-          "inline-flex items-center gap-2",
-          loading && "invisible",
-        )}
-      >
+      <span className={cn("inline-flex items-center gap-2", loading && "invisible")}>
         {children}
       </span>
     </button>

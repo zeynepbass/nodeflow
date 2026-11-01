@@ -78,9 +78,7 @@ function KeyValueEditor({
       <Button
         variant="secondary"
         size="sm"
-        onClick={() =>
-          onChange([...rows, { id: createId("satir"), key: "", value: "" }])
-        }
+        onClick={() => onChange([...rows, { id: createId("satir"), key: "", value: "" }])}
       >
         <Plus size={16} strokeWidth={1.5} aria-hidden />
         Satır Ekle

@@ -6,11 +6,11 @@ import { IconButton } from "@/shared/ui/atoms/IconButton";
 import { TextLink } from "@/shared/ui/atoms/TextLink";
 import { StatusPill } from "@/shared/ui/molecules/StatusPill";
 import { timeAgo } from "@/shared/lib/format";
-import { rerunWorkflow } from "@/features/executions/lib/execute";
-import { showToast } from "@/shared/stores/toast";
+import { useRerunWorkflow } from "@/features/executions/hooks/useExecutions";
 import type { Execution } from "@/shared/domain/types";
 
 export function RecentRuns({ executions }: { executions: Execution[] }) {
+  const rerun = useRerunWorkflow();
   return (
     <div className="rounded-xl bg-surface p-5 shadow-elevation-1">
       <div className="mb-3 flex items-center justify-between">
@@ -40,17 +40,7 @@ export function RecentRuns({ executions }: { executions: Execution[] }) {
                 label="Tekrar Çalıştır"
                 tooltipSide="left"
                 className="opacity-100 transition-opacity lg:opacity-0 lg:group-hover:opacity-100 lg:focus-visible:opacity-100"
-                onClick={async () => {
-                  const result = await rerunWorkflow(item.workflowId);
-                  if (!result) return;
-                  showToast({
-                    variant: result.status === "success" ? "success" : "error",
-                    message:
-                      result.status === "success"
-                        ? `${item.workflowName} başarıyla çalıştı.`
-                        : `${item.workflowName} hatayla sonlandı.`,
-                  });
-                }}
+                onClick={() => rerun.mutate({ id: item.workflowId })}
               >
                 <RotateCcw size={16} strokeWidth={1.5} aria-hidden />
               </IconButton>

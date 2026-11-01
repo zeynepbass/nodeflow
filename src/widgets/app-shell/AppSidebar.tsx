@@ -12,7 +12,13 @@ import { cn } from "@/shared/lib/cn";
 import { navigation } from "@/widgets/app-shell/navigation";
 import { useUi } from "@/shared/stores/ui";
 
-function NavLinks({ compact, onNavigate }: { compact?: boolean; onNavigate?: () => void }) {
+function NavLinks({
+  compact,
+  onNavigate,
+}: {
+  compact?: boolean;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
   return (
     <nav aria-label="Ana menü" className="flex flex-1 flex-col gap-1 p-3">
@@ -61,7 +67,12 @@ export function AppSidebar() {
       )}
       data-compact={compact}
     >
-      <div className={cn("flex h-16 items-center px-4", compact ? "justify-center" : "justify-between")}>
+      <div
+        className={cn(
+          "flex h-16 items-center px-4",
+          compact ? "justify-center" : "justify-between",
+        )}
+      >
         <LogoMark wordmark={!compact} />
         {!compact && (
           <IconButton
@@ -97,7 +108,9 @@ export function AppSidebar() {
     <>
       {preference === null ? (
         <>
-          <div className="contents max-lg:hidden xl:hidden [&>aside]:flex">{wide(true)}</div>
+          <div className="contents max-lg:hidden xl:hidden [&>aside]:flex">
+            {wide(true)}
+          </div>
           <div className="contents max-xl:hidden [&>aside]:flex">{wide(false)}</div>
         </>
       ) : (

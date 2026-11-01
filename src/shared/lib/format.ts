@@ -37,6 +37,7 @@ export const formatClock = (iso: string) =>
 export function formatDuration(ms: number) {
   if (ms < 1000) return `${Math.round(ms)} ms`;
   const seconds = ms / 1000;
-  if (seconds < 60) return `${seconds.toLocaleString("tr-TR", { maximumFractionDigits: 1 })} sn`;
+  if (seconds < 60)
+    return `${seconds.toLocaleString("tr-TR", { maximumFractionDigits: 1 })} sn`;
   return `${Math.floor(seconds / 60)} dk ${Math.round(seconds % 60)} sn`;
 }

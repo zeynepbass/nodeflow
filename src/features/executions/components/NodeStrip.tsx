@@ -26,7 +26,9 @@ function StatusIcon({ status }: { status: NodeResult["status"] }) {
   if (status === "success") return <Check size={16} strokeWidth={2} aria-hidden />;
   if (status === "error") return <X size={16} strokeWidth={2} aria-hidden />;
   if (status === "skipped") return <Ban size={16} strokeWidth={1.5} aria-hidden />;
-  return <span aria-hidden className="size-3 rounded-full border-[1.5px] border-current" />;
+  return (
+    <span aria-hidden className="size-3 rounded-full border-[1.5px] border-current" />
+  );
 }
 
 export function NodeStrip({

@@ -8,9 +8,11 @@ import { StatTile, StatTileSkeleton } from "@/shared/ui/molecules/StatTile";
 import { ActivityFeed } from "@/features/dashboard/components/ActivityFeed";
 import { RecentRuns } from "@/features/dashboard/components/RecentRuns";
 import { formatDuration } from "@/shared/lib/format";
-import { useAuth } from "@/features/auth/store/auth";
+import { useCurrentUser } from "@/features/auth/hooks/useAuth";
+import { useActivities, useExecutions } from "@/features/executions/hooks/useExecutions";
+import { useWorkflows } from "@/features/workflows/hooks/useWorkflows";
+import { QueryError } from "@/shared/ui/molecules/QueryError";
 import { useUi } from "@/shared/stores/ui";
-import { useWorkspace } from "@/features/workflows/store/workspace";
 import type { Execution } from "@/shared/domain/types";
 
 const startOfToday = () => new Date().setHours(0, 0, 0, 0);
@@ -38,16 +40,30 @@ function summarize(executions: Execution[]) {
 }
 
 export function Dashboard() {
-  const user = useAuth((state) => state.user);
-  const workflows = useWorkspace((state) => state.workflows);
-  const executions = useWorkspace((state) => state.executions);
-  const activities = useWorkspace((state) => state.activities);
-  const hydrated = useWorkspace.persist.hasHydrated();
+  const user = useCurrentUser();
+  const workflowsQuery = useWorkflows();
+  const executionsQuery = useExecutions();
+  const activitiesQuery = useActivities();
+  const workflows = workflowsQuery.data ?? [];
+  const executions = useMemo(() => executionsQuery.data ?? [], [executionsQuery.data]);
+  const activities = activitiesQuery.data ?? [];
+  const ready = workflowsQuery.isSuccess && executionsQuery.isSuccess;
   const openNew = useUi((state) => state.setNewWorkflowOpen);
   const stats = useMemo(() => summarize(executions), [executions]);
   const active = workflows.filter((item) => item.status === "active").length;
 
-  if (hydrated && workflows.length === 0) {
+  if (workflowsQuery.isError || executionsQuery.isError) {
+    return (
+      <QueryError
+        onRetry={() => {
+          workflowsQuery.refetch();
+          executionsQuery.refetch();
+        }}
+      />
+    );
+  }
+
+  if (ready && workflows.length === 0) {
     return (
       <EmptyState
         icon={Workflow}
@@ -68,7 +84,7 @@ export function Dashboard() {
       <section className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-display max-md:text-h1">
-            Tekrar hoş geldin, {user?.name.split(" ")[0]}
+            Tekrar hoş geldin, {user.name.split(" ")[0]}
           </h1>
           <p className="mt-1 text-fg-muted">
             {active} aktif workflow, bugün {stats.todayCount} çalıştırma
@@ -84,9 +100,13 @@ export function Dashboard() {
         aria-label="Özet istatistikler"
         className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4"
       >
-        {hydrated ? (
+        {ready ? (
           <>
-            <StatTile icon={Workflow} label="Toplam Workflow" value={String(workflows.length)} />
+            <StatTile
+              icon={Workflow}
+              label="Toplam Workflow"
+              value={String(workflows.length)}
+            />
             <StatTile
               icon={Timer}
               label="Bugünkü Çalıştırmalar"

@@ -11,7 +11,6 @@ import { create } from "zustand";
 import { createId } from "@/shared/lib/id";
 import { categories, createStoredNode } from "@/shared/domain/nodes/catalog";
 import { wouldCreateCycle } from "@/shared/domain/nodes/engine";
-import { useWorkspace } from "@/features/workflows/store/workspace";
 import type {
   FlowNodeData,
   StoredEdge,
@@ -73,7 +72,7 @@ interface EditorState {
   cancelDraft: () => void;
   undo: () => void;
   redo: () => void;
-  flush: () => void;
+  snapshotFlow: () => Snapshot;
   setSaveState: (state: SaveState) => void;
   setPickerTarget: (target: PickerTarget | null) => void;
   setRunState: (patch: Partial<Pick<EditorState, "running" | "activeEdgeId">>) => void;
@@ -136,10 +135,7 @@ function snapPosition(position: { x: number; y: number }, nodes: FlowNode[]) {
   const nearest = candidates
     .map((node) => ({
       node,
-      distance: Math.hypot(
-        position.x - node.position.x,
-        position.y - node.position.y,
-      ),
+      distance: Math.hypot(position.x - node.position.x, position.y - node.position.y),
     }))
     .sort((a, b) => a.distance - b.distance)[0];
   if (!nearest || Math.abs(position.y - nearest.node.position.y) > 120) {
@@ -148,8 +144,7 @@ function snapPosition(position: { x: number; y: number }, nodes: FlowNode[]) {
   return { x: position.x, y: nearest.node.position.y };
 }
 
-const handleOf = (data: FlowNodeData) =>
-  data.category === "condition" ? "yes" : null;
+const handleOf = (data: FlowNodeData) => (data.category === "condition" ? "yes" : null);
 
 export const useEditor = create<EditorState>((set, get) => ({
   workflowId: null,
@@ -257,9 +252,7 @@ export const useEditor = create<EditorState>((set, get) => ({
 
   addNode: (catalogId, position, options) => {
     get().applyDraft();
-    const finalPosition = options?.snap
-      ? snapPosition(position, get().nodes)
-      : position;
+    const finalPosition = options?.snap ? snapPosition(position, get().nodes) : position;
     const created = createStoredNode(catalogId, finalPosition);
     set((state) => ({
       ...pushPast(state),
@@ -327,16 +320,13 @@ export const useEditor = create<EditorState>((set, get) => ({
     });
     const continues = categories[created.data.category].outputs > 0;
     const outgoing = edges.filter(
-      (edge) =>
-        edge.source === nodeId && (edge.sourceHandle ?? null) === handle,
+      (edge) => edge.source === nodeId && (edge.sourceHandle ?? null) === handle,
     );
     set((state) => ({
       ...pushPast(state),
       nodes: [...state.nodes, toFlowNode(created)],
       edges: [
-        ...state.edges.filter(
-          (edge) => !continues || !outgoing.includes(edge),
-        ),
+        ...state.edges.filter((edge) => !continues || !outgoing.includes(edge)),
         {
           id: createId("baglanti"),
           type: "flow" as const,
@@ -374,8 +364,7 @@ export const useEditor = create<EditorState>((set, get) => ({
       ...pushPast(state),
       nodes: state.nodes.filter((node) => !removable.includes(node.id)),
       edges: state.edges.filter(
-        (edge) =>
-          !removable.includes(edge.source) && !removable.includes(edge.target),
+        (edge) => !removable.includes(edge.source) && !removable.includes(edge.target),
       ),
       selectedNodeId: removable.includes(state.selectedNodeId ?? "")
         ? null
@@ -517,15 +506,7 @@ export const useEditor = create<EditorState>((set, get) => ({
       };
     }),
 
-  flush: () => {
-    const state = get();
-    if (!state.workflowId) return;
-    useWorkspace.getState().saveFlow(state.workflowId, {
-      name: state.name,
-      nodes: state.nodes.map(toStoredNode),
-      edges: state.edges.map(toStoredEdge),
-    });
-  },
+  snapshotFlow: () => capture(get()),
 
   setSaveState: (saveState) => set({ saveState }),
   setPickerTarget: (pickerTarget) => set({ pickerTarget }),

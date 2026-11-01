@@ -1,11 +1,12 @@
 "use client";
 
 import { Toggle } from "@/shared/ui/atoms/Toggle";
-import { notificationGroups, usePreferences } from "@/features/settings/store/preferences";
+import { usePreferences, useUpdatePreferences } from "../hooks/usePreferences";
+import { notificationGroups } from "../lib/notification-groups";
 
 export function NotificationsTab() {
-  const notifications = usePreferences((state) => state.notifications);
-  const setNotification = usePreferences((state) => state.setNotification);
+  const { data } = usePreferences();
+  const update = useUpdatePreferences();
 
   return (
     <div className="flex flex-col gap-8">
@@ -21,8 +22,11 @@ export function NotificationsTab() {
                 </div>
                 <Toggle
                   label={item.title}
-                  checked={Boolean(notifications[item.key])}
-                  onChange={(value) => setNotification(item.key, value)}
+                  checked={Boolean(data?.notifications[item.key])}
+                  disabled={!data}
+                  onChange={(value) =>
+                    update.mutate({ notifications: { [item.key]: value } })
+                  }
                 />
               </li>
             ))}

@@ -12,21 +12,9 @@ import {
 import { useRouter } from "next/navigation";
 import { IconButton } from "@/shared/ui/atoms/IconButton";
 import { Menu } from "@/shared/ui/molecules/Menu";
-import { showToast } from "@/shared/stores/toast";
-import { useWorkspace } from "@/features/workflows/store/workspace";
 import type { Workflow } from "@/shared/domain/types";
-import { downloadWorkflows } from "@/features/workflows/lib/workflows";
-
-export function duplicateWithUndo(id: string) {
-  const { duplicateWorkflow, removeWorkflows } = useWorkspace.getState();
-  const copyId = duplicateWorkflow(id);
-  if (!copyId) return;
-  showToast({
-    message: "Workflow kopyalandı.",
-    actionLabel: "Geri Al",
-    onAction: () => removeWorkflows([copyId]),
-  });
-}
+import { useDuplicateWorkflow, useUpdateWorkflow } from "../hooks/useWorkflows";
+import { downloadWorkflows } from "../lib/workflows";
 
 export function WorkflowActions({
   workflow,
@@ -38,7 +26,8 @@ export function WorkflowActions({
   className?: string;
 }) {
   const router = useRouter();
-  const setStatus = useWorkspace((state) => state.setStatus);
+  const update = useUpdateWorkflow();
+  const duplicate = useDuplicateWorkflow();
   const isActive = workflow.status === "active";
   return (
     <Menu
@@ -52,7 +41,7 @@ export function WorkflowActions({
         {
           label: "Kopyala",
           icon: Copy,
-          onSelect: () => duplicateWithUndo(workflow.id),
+          onSelect: () => duplicate(workflow.id),
         },
         {
           label: "Dışa Aktar",
@@ -62,7 +51,11 @@ export function WorkflowActions({
         {
           label: isActive ? "Durdur" : "Aktifleştir",
           icon: isActive ? Pause : Play,
-          onSelect: () => setStatus(workflow.id, isActive ? "stopped" : "active"),
+          onSelect: () =>
+            update.mutate({
+              id: workflow.id,
+              patch: { status: isActive ? "stopped" : "active" },
+            }),
         },
         { label: "Sil", icon: Trash2, danger: true, onSelect: onDelete },
       ]}

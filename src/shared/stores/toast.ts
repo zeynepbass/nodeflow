@@ -25,8 +25,7 @@ export const useToasts = create<ToastState>((set) => ({
         { variant: "success", ...toast, id: crypto.randomUUID() },
       ],
     })),
-  dismiss: (id) =>
-    set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
+  dismiss: (id) => set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) })),
 }));
 
 export const showToast = (

@@ -11,8 +11,7 @@ import type {
 
 type Flow = { nodes: StoredNode[]; edges: StoredEdge[] };
 
-const ago = (minutes: number) =>
-  new Date(Date.now() - minutes * 60000).toISOString();
+const ago = (minutes: number) => new Date(Date.now() - minutes * 60000).toISOString();
 
 const edge = (
   source: StoredNode,
@@ -209,10 +208,34 @@ export function createDemoWorkspace() {
     execution(report, "success", 1535, 2060, "Zamanlayıcı"),
   ];
   const activities: Activity[] = [
-    { id: createId("aktivite"), user: "Ece Yılmaz", action: "düzenledi", workflowName: orders.name, at: ago(42) },
-    { id: createId("aktivite"), user: "Mert Demir", action: "çalıştırdı", workflowName: refund.name, at: ago(180) },
-    { id: createId("aktivite"), user: "Ece Yılmaz", action: "oluşturdu", workflowName: crm.name, at: ago(190) },
-    { id: createId("aktivite"), user: "Mert Demir", action: "yorum ekledi", workflowName: report.name, at: ago(1500) },
+    {
+      id: createId("aktivite"),
+      user: "Ece Yılmaz",
+      action: "düzenledi",
+      workflowName: orders.name,
+      at: ago(42),
+    },
+    {
+      id: createId("aktivite"),
+      user: "Mert Demir",
+      action: "çalıştırdı",
+      workflowName: refund.name,
+      at: ago(180),
+    },
+    {
+      id: createId("aktivite"),
+      user: "Ece Yılmaz",
+      action: "oluşturdu",
+      workflowName: crm.name,
+      at: ago(190),
+    },
+    {
+      id: createId("aktivite"),
+      user: "Mert Demir",
+      action: "yorum ekledi",
+      workflowName: report.name,
+      at: ago(1500),
+    },
   ];
   return { workflows: [orders, report, refund, crm], executions, activities };
 }
