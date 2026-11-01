@@ -2,6 +2,7 @@
 
 import { ReactFlowProvider, useReactFlow } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { useRunner } from "@/features/editor/hooks/useRunner";
 import { useEditor } from "@/features/editor/store/editor";
@@ -13,7 +14,8 @@ import { EditorToolbar } from "./EditorToolbar";
 import { NodeLibrary } from "./NodeLibrary";
 import { NodePicker } from "./NodePicker";
 import { RightPanel } from "./RightPanel";
-import { ScheduleModal } from "./ScheduleModal";
+
+const ScheduleModal = dynamic(() => import("./ScheduleModal"), { ssr: false });
 
 function useEditorShortcuts(save: () => Promise<void>) {
   const flow = useReactFlow();
@@ -110,7 +112,7 @@ function DesktopEditorContent({ save }: { save: () => Promise<void> }) {
         />
       </div>
       <NodePicker />
-      <ScheduleModal open={scheduleOpen} onClose={() => setScheduleOpen(false)} />
+      {scheduleOpen && <ScheduleModal open onClose={() => setScheduleOpen(false)} />}
     </div>
   );
 }

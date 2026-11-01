@@ -12,7 +12,7 @@ import { FormField } from "@/shared/ui/molecules/FormField";
 import { Modal } from "@/shared/ui/molecules/Modal";
 import { useEditor } from "../store/editor";
 
-export function ScheduleModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export default function ScheduleModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const workflowId = useEditor((state) => state.workflowId);
   const { data: workflow } = useWorkflow(workflowId);
   const update = useUpdateWorkflow();
