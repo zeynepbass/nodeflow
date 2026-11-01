@@ -3,6 +3,7 @@
 import { useEffect, type ReactNode } from "react";
 import { ToastHost } from "@/components/molecules/ToastHost";
 import { useAuth } from "@/lib/stores/auth";
+import { usePreferences } from "@/lib/stores/preferences";
 import { useTheme } from "@/lib/stores/theme";
 import { useWorkspace } from "@/lib/stores/workspace";
 import { applyTheme } from "@/lib/theme";
@@ -12,6 +13,7 @@ export function Providers({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     useTheme.getState().hydrate();
+    usePreferences.persist.rehydrate();
     Promise.resolve(useWorkspace.persist.rehydrate()).then(() =>
       useAuth.getState().hydrate(),
     );
