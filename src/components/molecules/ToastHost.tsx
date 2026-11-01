@@ -62,7 +62,7 @@ function ToastItem({ toast }: { toast: Toast }) {
 export function ToastHost() {
   const toasts = useToasts((state) => state.toasts);
   return (
-    <div className="pointer-events-none fixed right-4 top-4 z-[60] flex flex-col gap-2">
+    <div className="pointer-events-none fixed right-4 top-[76px] z-[60] flex flex-col gap-2">
       {toasts.map((toast) => (
         <ToastItem key={toast.id} toast={toast} />
       ))}
