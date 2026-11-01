@@ -6,7 +6,6 @@ export const fieldClass = (invalid?: boolean, mono?: boolean) =>
     "w-full rounded-sm border bg-surface px-3 text-fg outline-none transition-[border-color,box-shadow] duration-100",
     "focus:border-primary-500 focus:shadow-[0_0_0_3px_var(--focus-glow)]",
     "disabled:border-transparent disabled:bg-surface-hover disabled:text-fg-disabled disabled:cursor-not-allowed",
-    "read-only:bg-surface-hover read-only:focus:shadow-none",
     mono ? "font-mono text-code" : "text-body",
     invalid ? "border-error-500" : "border-line",
   );
@@ -24,7 +23,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     <input
       ref={ref}
       aria-invalid={invalid || undefined}
-      className={cn(fieldClass(invalid, mono), "h-10", className)}
+      className={cn(
+        fieldClass(invalid, mono),
+        "h-10 read-only:bg-surface-hover read-only:focus:shadow-none",
+        className,
+      )}
       {...props}
     />
   );
