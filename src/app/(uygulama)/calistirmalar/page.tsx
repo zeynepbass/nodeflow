@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ExecutionsView } from "@/components/organisms/ExecutionsView";
+import { ExecutionsView } from "@/features/executions/components/ExecutionsView";
 
 export const metadata: Metadata = { title: "Çalıştırmalar" };
 

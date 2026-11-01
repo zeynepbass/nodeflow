@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Inter } from "next/font/google";
 import type { ReactNode } from "react";
-import { Providers } from "@/components/Providers";
-import { themeScript } from "@/lib/theme";
+import { Providers } from "@/app/Providers";
+import { themeScript } from "@/features/theme/lib/theme";
 import "./globals.css";
 
 const inter = Inter({

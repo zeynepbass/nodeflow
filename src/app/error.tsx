@@ -1,8 +1,8 @@
 "use client";
 
 import { TriangleAlert } from "lucide-react";
-import { Button } from "@/components/atoms/Button";
-import { EmptyState } from "@/components/molecules/EmptyState";
+import { Button } from "@/shared/ui/atoms/Button";
+import { EmptyState } from "@/shared/ui/molecules/EmptyState";
 
 export default function ErrorPage({ reset }: { reset: () => void }) {
   return (

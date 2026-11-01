@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Spinner } from "@/components/atoms/Spinner";
-import { useAuth } from "@/lib/stores/auth";
+import { Spinner } from "@/shared/ui/atoms/Spinner";
+import { useAuth } from "@/features/auth/store/auth";
 
 export default function Page() {
   const router = useRouter();
